@@ -48,15 +48,15 @@ export default function Login({ status, canResetPassword }) {
                                     />
                                 </div>
                                 <span className="text-2xl font-bold text-slate-900 dark:text-white">
-                                    Aplikasi Kasir
+                                    ORO STATION
                                 </span>
                             </Link>
                             <h1 className="text-3xl font-bold text-slate-900 dark:text-white">
                                 Selamat Datang Kembali
                             </h1>
-                            <p className="mt-2 text-slate-600 dark:text-slate-400">
+                            {/* <p className="mt-2 text-slate-600 dark:text-slate-400">
                                 Masuk untuk mengakses dashboard Anda
-                            </p>
+                            </p> */}
                         </div>
 
                         {/* Status Message */}
