@@ -529,4 +529,36 @@ class TransactionController extends Controller
             'filters'      => $filters,
         ]);
     }
+
+    /**
+     * Cancel a transaction and restore stock.
+     */
+    public function cancel(Request $request, $transactionId)
+    {
+        $query = Transaction::query()->with(['details.product', 'profits']);
+
+        if (! $request->user()->isSuperAdmin()) {
+            $query->where('cashier_id', $request->user()->id);
+        }
+
+        $transaction = $query->where('id', $transactionId)->first();
+
+        if (! $transaction) {
+            return back()->withErrors(['message' => 'Transaksi tidak ditemukan.']);
+        }
+
+        DB::transaction(function () use ($transaction) {
+            foreach ($transaction->details as $detail) {
+                if ($detail->product) {
+                    $detail->product->increment('stock', $detail->qty);
+                }
+            }
+
+            $transaction->profits()->delete();
+            $transaction->details()->delete();
+            $transaction->delete();
+        });
+
+        return back()->with('success', 'Transaksi berhasil dibatalkan.');
+    }
 }
