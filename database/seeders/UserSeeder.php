@@ -39,10 +39,6 @@ class UserSeeder extends Seeder
             'password' => bcrypt('password'),
         ]);
 
-        // $transactionsPermission = Permission::where('name', 'transactions-access')->first();
-
-        // $cashier->syncPermissions($transactionsPermission);
-
         $cashierRole = Role::where('name', 'cashier')->first();
 
         if ($cashierRole) {
