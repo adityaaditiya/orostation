@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Head, router, Link } from "@inertiajs/react";
+import Swal from "sweetalert2";
 import DashboardLayout from "@/Layouts/DashboardLayout";
-import Button from "@/Components/Dashboard/Button";
-import Table from "@/Components/Dashboard/Table";
 import Pagination from "@/Components/Dashboard/Pagination";
 import {
     IconDatabaseOff,
@@ -13,6 +12,7 @@ import {
     IconPrinter,
     IconFilter,
     IconX,
+    IconBan,
 } from "@tabler/icons-react";
 
 const defaultFilters = {
@@ -76,6 +76,43 @@ const History = ({ transactions, filters }) => {
 
     const hasActiveFilters =
         filterData.invoice || filterData.start_date || filterData.end_date;
+
+    const handleCancel = (transaction) => {
+        Swal.fire({
+            title: "Batalkan transaksi?",
+            text: "Stok produk dan saldo pemasukan akan dikembalikan.",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#ef4444",
+            cancelButtonColor: "#64748b",
+            confirmButtonText: "Ya, Batalkan!",
+            cancelButtonText: "Batal",
+        }).then((result) => {
+            if (!result.isConfirmed) return;
+
+            router.delete(route("transactions.cancel", transaction.id), {
+                preserveScroll: true,
+                onSuccess: () => {
+                    Swal.fire({
+                        title: "Berhasil!",
+                        text: "Transaksi berhasil dibatalkan.",
+                        icon: "success",
+                        showConfirmButton: false,
+                        timer: 1500,
+                    });
+                },
+                onError: (errors) => {
+                    Swal.fire({
+                        title: "Gagal!",
+                        text:
+                            errors?.message ||
+                            "Transaksi gagal dibatalkan.",
+                        icon: "error",
+                    });
+                },
+            });
+        });
+    };
 
     return (
         <>
@@ -279,16 +316,32 @@ const History = ({ transactions, filters }) => {
                                                 )}
                                             </td> */}
                                             <td className="px-4 py-4 text-center">
-                                                <Link
-                                                    href={route(
-                                                        "transactions.print",
-                                                        transaction.invoice
-                                                    )}
-                                                    className="inline-flex items-center justify-center w-8 h-8 rounded-lg text-slate-500 hover:text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-950/50 transition-colors"
-                                                    title="Cetak Struk"
-                                                >
-                                                    <IconPrinter size={18} />
-                                                </Link>
+                                                <div className="flex items-center justify-center gap-2">
+                                                    <Link
+                                                        href={route(
+                                                            "transactions.print",
+                                                            transaction.invoice
+                                                        )}
+                                                        className="inline-flex items-center justify-center w-8 h-8 rounded-lg text-slate-500 hover:text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-950/50 transition-colors"
+                                                        title="Cetak Struk"
+                                                    >
+                                                        <IconPrinter
+                                                            size={18}
+                                                        />
+                                                    </Link>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() =>
+                                                            handleCancel(
+                                                                transaction
+                                                            )
+                                                        }
+                                                        className="inline-flex items-center justify-center w-8 h-8 rounded-lg text-slate-500 hover:text-danger-600 hover:bg-danger-50 dark:hover:bg-danger-950/50 transition-colors"
+                                                        title="Batalkan Transaksi"
+                                                    >
+                                                        <IconBan size={18} />
+                                                    </button>
+                                                </div>
                                             </td>
                                         </tr>
                                     ))}
