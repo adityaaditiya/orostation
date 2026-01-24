@@ -4,7 +4,6 @@ import Swal from "sweetalert2";
 import DashboardLayout from "@/Layouts/DashboardLayout";
 import Pagination from "@/Components/Dashboard/Pagination";
 import {
-    IconDatabaseOff,
     IconSearch,
     IconHistory,
     IconCalendar,
@@ -236,41 +235,41 @@ const History = ({ transactions, filters }) => {
                 )}
 
                 {/* Transaction List */}
-                {rows.length > 0 ? (
-                    <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden">
-                        <div className="overflow-x-auto">
-                            <table className="w-full">
-                                <thead>
-                                    <tr className="border-b border-slate-100 dark:border-slate-800">
-                                        <th className="px-4 py-4 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                                            No
-                                        </th>
-                                        <th className="px-4 py-4 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                                            Invoice
-                                        </th>
-                                        <th className="px-4 py-4 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                                            Tanggal
-                                        </th>
-                                        <th className="px-4 py-4 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                                            Kasir
-                                        </th>
-                                        <th className="px-4 py-4 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                                            Pelanggan
-                                        </th>
-                                        <th className="px-4 py-4 text-center text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                                            Item
-                                        </th>
-                                        <th className="px-4 py-4 text-right text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                                            Total
-                                        </th>
-                                        {/* <th className="px-4 py-4 text-right text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                                            Profit
-                                        </th> */}
-                                        <th className="px-4 py-4 text-center text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider"></th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                                    {rows.map((transaction, index) => (
+                <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden">
+                    <div className="overflow-x-auto">
+                        <table className="w-full">
+                            <thead>
+                                <tr className="border-b border-slate-100 dark:border-slate-800">
+                                    <th className="px-4 py-4 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                                        No
+                                    </th>
+                                    <th className="px-4 py-4 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                                        Invoice
+                                    </th>
+                                    <th className="px-4 py-4 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                                        Tanggal
+                                    </th>
+                                    <th className="px-4 py-4 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                                        Kasir
+                                    </th>
+                                    <th className="px-4 py-4 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                                        Pelanggan
+                                    </th>
+                                    <th className="px-4 py-4 text-center text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                                        Item
+                                    </th>
+                                    <th className="px-4 py-4 text-right text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                                        Total
+                                    </th>
+                                    {/* <th className="px-4 py-4 text-right text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                                        Profit
+                                    </th> */}
+                                    <th className="px-4 py-4 text-center text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider"></th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                                {rows.length > 0 ? (
+                                    rows.map((transaction, index) => (
                                         <tr
                                             key={transaction.id}
                                             className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"
@@ -344,31 +343,21 @@ const History = ({ transactions, filters }) => {
                                                 </div>
                                             </td>
                                         </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
+                                    ))
+                                ) : (
+                                    <tr>
+                                        <td
+                                            colSpan={8}
+                                            className="px-4 py-10 text-center text-sm text-slate-500 dark:text-slate-400"
+                                        >
+                                            Tidak ada transaksi hari ini.
+                                        </td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        </table>
                     </div>
-                ) : (
-                    /* Empty State */
-                    <div className="flex flex-col items-center justify-center py-16 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800">
-                        <div className="w-16 h-16 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center mb-4">
-                            <IconDatabaseOff
-                                size={32}
-                                className="text-slate-400"
-                                strokeWidth={1.5}
-                            />
-                        </div>
-                        <h3 className="text-lg font-medium text-slate-800 dark:text-slate-200 mb-1">
-                            Belum Ada Transaksi
-                        </h3>
-                        <p className="text-sm text-slate-500 dark:text-slate-400">
-                            {hasActiveFilters
-                                ? "Tidak ada transaksi sesuai filter."
-                                : "Transaksi akan muncul di sini."}
-                        </p>
-                    </div>
-                )}
+                </div>
 
                 {links.length > 3 && <Pagination links={links} />}
             </div>
