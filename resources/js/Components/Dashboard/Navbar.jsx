@@ -57,10 +57,10 @@ export default function Navbar({ toggleSidebar, themeSwitcher, darkMode }) {
                 {/* Mobile Logo */}
                 <div className="md:hidden flex items-center gap-2">
                     <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center">
-                        <span className="text-white font-bold text-xs">K</span>
+                        <span className="text-white font-bold text-xs">O</span>
                     </div>
                     <span className="text-lg font-bold text-slate-800 dark:text-white">
-                        KASIR
+                        ORO STATION
                     </span>
                 </div>
 

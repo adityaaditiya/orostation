@@ -173,15 +173,15 @@ const Sales = ({ transactions, summary, filters, cashiers, customers }) => {
             icon: <IconReceipt2 />,
             gradient: "from-primary-500 to-primary-700",
         },
-        {
-            title: "Total Profit",
-            value: formatCurrency(safeSummary.profit_total),
-            description: `Rata-rata ${formatCurrency(
-                safeSummary.average_order
-            )}`,
-            icon: <IconCoin />,
-            gradient: "from-success-500 to-success-700",
-        },
+        // {
+        //     title: "Total Profit",
+        //     value: formatCurrency(safeSummary.profit_total),
+        //     description: `Rata-rata ${formatCurrency(
+        //         safeSummary.average_order
+        //     )}`,
+        //     icon: <IconCoin />,
+        //     gradient: "from-success-500 to-success-700",
+        // },
         {
             title: "Item Terjual",
             value: safeSummary.items_sold.toLocaleString("id-ID"),
@@ -361,9 +361,9 @@ const Sales = ({ transactions, summary, filters, cashiers, customers }) => {
                                         <th className="px-4 py-4 text-right text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">
                                             Total
                                         </th>
-                                        <th className="px-4 py-4 text-right text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">
+                                        {/* <th className="px-4 py-4 text-right text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">
                                             Profit
-                                        </th>
+                                        </th> */}
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -399,11 +399,11 @@ const Sales = ({ transactions, summary, filters, cashiers, customers }) => {
                                                     trx.grand_total ?? 0
                                                 )}
                                             </td>
-                                            <td className="px-4 py-4 text-right text-sm font-semibold text-success-600 dark:text-success-400">
+                                            {/* <td className="px-4 py-4 text-right text-sm font-semibold text-success-600 dark:text-success-400">
                                                 {formatCurrency(
                                                     trx.total_profit ?? 0
                                                 )}
-                                            </td>
+                                            </td> */}
                                         </tr>
                                     ))}
                                 </tbody>

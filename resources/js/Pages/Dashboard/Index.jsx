@@ -275,14 +275,14 @@ export default function Dashboard({
                         icon={IconCoin}
                         gradient="from-primary-500 to-primary-700"
                     />
-                    <StatCard
+                    {/* <StatCard
                         title="Total Profit"
                         value={formatCurrency(totalProfit)}
                         subtitle="Profit bersih"
                         icon={IconTrendingUp}
                         gradient="from-success-500 to-success-700"
                         trend="up"
-                    />
+                    /> */}
                     <StatCard
                         title="Rata-Rata Order"
                         value={formatCurrency(averageOrder)}
@@ -316,11 +316,11 @@ export default function Dashboard({
                         value={totalTransactions}
                         icon={IconMoneybag}
                     />
-                    <InfoCard
+                    {/* <InfoCard
                         title="Total Pengguna"
                         value={totalUsers}
                         icon={IconUsers}
-                    />
+                    /> */}
                 </div>
 
                 {/* Charts and Lists Row */}
@@ -414,7 +414,7 @@ export default function Dashboard({
 
                     {/* Top Customers */}
                     <ListCard
-                        title="Pelanggan Terbaik"
+                        title="Transaksi Pelanggan"
                         subtitle="Berdasarkan nilai pembelian"
                         icon={IconUsers}
                         emptyMessage="Belum ada data pelanggan"

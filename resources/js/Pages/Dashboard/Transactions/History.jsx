@@ -226,9 +226,9 @@ const History = ({ transactions, filters }) => {
                                         <th className="px-4 py-4 text-right text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                                             Total
                                         </th>
-                                        <th className="px-4 py-4 text-right text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                                        {/* <th className="px-4 py-4 text-right text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                                             Profit
-                                        </th>
+                                        </th> */}
                                         <th className="px-4 py-4 text-center text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider"></th>
                                     </tr>
                                 </thead>
@@ -272,12 +272,12 @@ const History = ({ transactions, filters }) => {
                                                     transaction.grand_total ?? 0
                                                 )}
                                             </td>
-                                            <td className="px-4 py-4 text-right text-sm font-semibold text-success-600 dark:text-success-400">
+                                            {/* <td className="px-4 py-4 text-right text-sm font-semibold text-success-600 dark:text-success-400">
                                                 {formatCurrency(
                                                     transaction.total_profit ??
                                                         0
                                                 )}
-                                            </td>
+                                            </td> */}
                                             <td className="px-4 py-4 text-center">
                                                 <Link
                                                     href={route(
