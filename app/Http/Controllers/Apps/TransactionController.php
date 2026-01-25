@@ -554,6 +554,12 @@ class TransactionController extends Controller
             return back()->withErrors(['message' => 'Transaksi tidak ditemukan.']);
         }
 
+        if ($transaction->payment_status === 'pending') {
+            return back()->withErrors([
+                'message' => 'Transaksi dengan pembayaran gateway belum bisa dibatalkan. Batalkan pembayaran terlebih dahulu.',
+            ]);
+        }
+
         DB::transaction(function () use ($transaction) {
             foreach ($transaction->details as $detail) {
                 if ($detail->product) {
