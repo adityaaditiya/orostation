@@ -387,8 +387,14 @@ class TransactionController extends Controller
     public function store(Request $request, PaymentGatewayManager $paymentGatewayManager)
     {
         $paymentGateway = $request->input('payment_gateway');
+        $isManualNonCash = false;
         if ($paymentGateway) {
             $paymentGateway = strtolower($paymentGateway);
+        }
+
+        if ($paymentGateway === 'non-cash') {
+            $paymentGateway  = null;
+            $isManualNonCash = true;
         }
         $paymentSetting = null;
 
@@ -409,7 +415,7 @@ class TransactionController extends Controller
         }
 
         $invoice       = 'TRX-' . Str::upper($random);
-        $isCashPayment = empty($paymentGateway);
+        $isCashPayment = empty($paymentGateway) && ! $isManualNonCash;
         $cashAmount    = $isCashPayment ? $request->cash : $request->grand_total;
         $changeAmount  = $isCashPayment ? $request->change : 0;
 
@@ -419,7 +425,8 @@ class TransactionController extends Controller
             $cashAmount,
             $changeAmount,
             $paymentGateway,
-            $isCashPayment
+            $isCashPayment,
+            $isManualNonCash
         ) {
             $transaction = Transaction::create([
                 'cashier_id'     => auth()->user()->id,
@@ -429,8 +436,8 @@ class TransactionController extends Controller
                 'change'         => $changeAmount,
                 'discount'       => $request->discount,
                 'grand_total'    => $request->grand_total,
-                'payment_method' => $paymentGateway ?: 'cash',
-                'payment_status' => $isCashPayment ? 'paid' : 'pending',
+                'payment_method' => $paymentGateway ?: ($isManualNonCash ? 'non-cash' : 'cash'),
+                'payment_status' => ($isCashPayment || $isManualNonCash) ? 'paid' : 'pending',
             ]);
 
             $carts = Cart::where('cashier_id', auth()->user()->id)->get();
@@ -528,5 +535,37 @@ class TransactionController extends Controller
             'transactions' => $transactions,
             'filters'      => $filters,
         ]);
+    }
+
+    /**
+     * Cancel a transaction and restore stock.
+     */
+    public function cancel(Request $request, $transactionId)
+    {
+        $query = Transaction::query()->with(['details.product', 'profits']);
+
+        if (! $request->user()->isSuperAdmin()) {
+            $query->where('cashier_id', $request->user()->id);
+        }
+
+        $transaction = $query->where('id', $transactionId)->first();
+
+        if (! $transaction) {
+            return back()->withErrors(['message' => 'Transaksi tidak ditemukan.']);
+        }
+
+        DB::transaction(function () use ($transaction) {
+            foreach ($transaction->details as $detail) {
+                if ($detail->product) {
+                    $detail->product->increment('stock', $detail->qty);
+                }
+            }
+
+            $transaction->profits()->delete();
+            $transaction->details()->delete();
+            $transaction->delete();
+        });
+
+        return back()->with('success', 'Transaksi berhasil dibatalkan.');
     }
 }
