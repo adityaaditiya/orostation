@@ -107,6 +107,15 @@ export default function Menu() {
                     icon: <IconChartBarPopular size={20} strokeWidth={1.5} />,
                     permissions: hasAnyPermission(["profits-access"]),
                 },
+                {
+                    title: "Laporan Keuangan Cash",
+                    href: route("reports.cash.index"),
+                    active: url.startsWith("/dashboard/reports/cash"),
+                    icon: (
+                        <IconChartInfographic size={20} strokeWidth={1.5} />
+                    ),
+                    permissions: hasAnyPermission(["reports-access"]),
+                },
             ],
         },
         {
