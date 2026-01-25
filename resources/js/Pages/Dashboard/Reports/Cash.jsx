@@ -6,7 +6,6 @@ import Pagination from "@/Components/Dashboard/Pagination";
 import {
     IconArrowDownCircle,
     IconArrowUpCircle,
-    IconDatabaseOff,
     IconFilter,
     IconSearch,
     IconX,
@@ -308,28 +307,28 @@ const Cash = ({ transactions, summary, filters, cashiers, customers }) => {
                     </div>
                 )}
 
-                {rows.length > 0 ? (
-                    <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden">
-                        <div className="overflow-x-auto">
-                            <table className="w-full">
-                                <thead>
-                                    <tr className="border-b border-slate-100 dark:border-slate-800">
-                                        <th className="px-4 py-4 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">
-                                            Kategori
-                                        </th>
-                                        <th className="px-4 py-4 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">
-                                            Deskripsi
-                                        </th>
-                                        <th className="px-4 py-4 text-right text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">
-                                            Uang Masuk
-                                        </th>
-                                        <th className="px-4 py-4 text-right text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">
-                                            Uang Keluar
-                                        </th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                                    {rows.map((trx) => (
+                <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden">
+                    <div className="overflow-x-auto">
+                        <table className="w-full">
+                            <thead>
+                                <tr className="border-b border-slate-100 dark:border-slate-800">
+                                    <th className="px-4 py-4 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">
+                                        Kategori
+                                    </th>
+                                    <th className="px-4 py-4 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">
+                                        Deskripsi
+                                    </th>
+                                    <th className="px-4 py-4 text-right text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">
+                                        Uang Masuk
+                                    </th>
+                                    <th className="px-4 py-4 text-right text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">
+                                        Uang Keluar
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                                {rows.length > 0 ? (
+                                    rows.map((trx) => (
                                         <tr
                                             key={trx.id}
                                             className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"
@@ -349,27 +348,21 @@ const Cash = ({ transactions, summary, filters, cashiers, customers }) => {
                                                 {formatCurrency(0)}
                                             </td>
                                         </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
+                                    ))
+                                ) : (
+                                    <tr>
+                                        <td
+                                            colSpan={4}
+                                            className="px-4 py-8 text-center text-sm text-slate-500 dark:text-slate-400"
+                                        >
+                                            Tidak ada transaksi hari ini.
+                                        </td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        </table>
                     </div>
-                ) : (
-                    <div className="flex flex-col items-center justify-center py-16 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800">
-                        <div className="w-16 h-16 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center mb-4">
-                            <IconDatabaseOff
-                                size={32}
-                                className="text-slate-400"
-                            />
-                        </div>
-                        <h3 className="text-lg font-medium text-slate-800 dark:text-slate-200 mb-1">
-                            Tidak Ada Data
-                        </h3>
-                        <p className="text-sm text-slate-500 dark:text-slate-400">
-                            Tidak ada transaksi sesuai filter.
-                        </p>
-                    </div>
-                )}
+                </div>
 
                 {paginationLinks.length > 3 && (
                     <Pagination links={paginationLinks} />
