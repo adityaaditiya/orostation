@@ -24,7 +24,8 @@ class RoleSeeder extends Seeder
         $this->createRoleWithPermissions('profits-access', '%profits%');
         $this->createRoleWithPermissions('payment-settings-access', '%payment-settings%');
 
-        Role::create(['name' => 'super-admin']);
+        $superAdminRole = Role::create(['name' => 'super-admin']);
+        $superAdminRole->givePermissionTo(Permission::all());
 
         // Create cashier role with basic permissions for public registration
         $cashierRole        = Role::create(['name' => 'cashier']);
