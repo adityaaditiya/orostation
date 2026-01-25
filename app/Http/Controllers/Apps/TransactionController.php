@@ -554,7 +554,9 @@ class TransactionController extends Controller
             return back()->withErrors(['message' => 'Transaksi tidak ditemukan.']);
         }
 
-        if ($transaction->payment_status === 'pending') {
+        $isGatewayPayment = ! in_array($transaction->payment_method, ['cash', 'non-cash'], true);
+
+        if ($transaction->payment_status === 'pending' || $isGatewayPayment) {
             return back()->withErrors([
                 'message' => 'Transaksi dengan pembayaran gateway belum bisa dibatalkan. Batalkan pembayaran terlebih dahulu.',
             ]);
