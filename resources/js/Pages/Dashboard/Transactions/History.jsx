@@ -1,18 +1,16 @@
 import React, { useEffect, useState } from "react";
 import { Head, router, Link } from "@inertiajs/react";
+import Swal from "sweetalert2";
 import DashboardLayout from "@/Layouts/DashboardLayout";
-import Button from "@/Components/Dashboard/Button";
-import Table from "@/Components/Dashboard/Table";
 import Pagination from "@/Components/Dashboard/Pagination";
 import {
-    IconDatabaseOff,
     IconSearch,
     IconHistory,
-    IconCalendar,
     IconReceipt,
     IconPrinter,
     IconFilter,
     IconX,
+    IconBan,
 } from "@tabler/icons-react";
 
 const defaultFilters = {
@@ -27,6 +25,16 @@ const formatCurrency = (value = 0) =>
         currency: "IDR",
         minimumFractionDigits: 0,
     }).format(value);
+
+const formatPaymentMethod = (value = "") => {
+    if (!value) return "-";
+    const normalized = value.toString().toLowerCase();
+    if (normalized === "cash") return "Tunai";
+    if (normalized === "non-cash") return "Non Tunai";
+    return normalized
+        .replace(/[_-]+/g, " ")
+        .replace(/\b\w/g, (char) => char.toUpperCase());
+};
 
 const History = ({ transactions, filters }) => {
     const [filterData, setFilterData] = useState({
@@ -76,6 +84,43 @@ const History = ({ transactions, filters }) => {
 
     const hasActiveFilters =
         filterData.invoice || filterData.start_date || filterData.end_date;
+
+    const handleCancel = (transaction) => {
+        Swal.fire({
+            title: "Batalkan transaksi?",
+            text: "Stok produk dan saldo pemasukan akan dikembalikan.",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#ef4444",
+            cancelButtonColor: "#64748b",
+            confirmButtonText: "Ya, Batalkan!",
+            cancelButtonText: "Batal",
+        }).then((result) => {
+            if (!result.isConfirmed) return;
+
+            router.delete(route("transactions.cancel", transaction.id), {
+                preserveScroll: true,
+                onSuccess: () => {
+                    Swal.fire({
+                        title: "Berhasil!",
+                        text: "Transaksi berhasil dibatalkan.",
+                        icon: "success",
+                        showConfirmButton: false,
+                        timer: 1500,
+                    });
+                },
+                onError: (errors) => {
+                    Swal.fire({
+                        title: "Gagal!",
+                        text:
+                            errors?.message ||
+                            "Transaksi gagal dibatalkan.",
+                        icon: "error",
+                    });
+                },
+            });
+        });
+    };
 
     return (
         <>
@@ -199,41 +244,44 @@ const History = ({ transactions, filters }) => {
                 )}
 
                 {/* Transaction List */}
-                {rows.length > 0 ? (
-                    <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden">
-                        <div className="overflow-x-auto">
-                            <table className="w-full">
-                                <thead>
-                                    <tr className="border-b border-slate-100 dark:border-slate-800">
-                                        <th className="px-4 py-4 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                                            No
-                                        </th>
-                                        <th className="px-4 py-4 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                                            Invoice
-                                        </th>
-                                        <th className="px-4 py-4 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                                            Tanggal
-                                        </th>
-                                        <th className="px-4 py-4 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                                            Kasir
-                                        </th>
+                <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden">
+                    <div className="overflow-x-auto">
+                        <table className="w-full">
+                            <thead>
+                                <tr className="border-b border-slate-100 dark:border-slate-800">
+                                    <th className="px-4 py-4 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                                        No
+                                    </th>
+                                    <th className="px-4 py-4 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                                        Invoice
+                                    </th>
+                                    <th className="px-4 py-4 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                                        Tanggal
+                                    </th>
+                                    <th className="px-4 py-4 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                                        Kasir
+                                    </th>
                                         <th className="px-4 py-4 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                                             Pelanggan
+                                        </th>
+                                        <th className="px-4 py-4 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                                            Metode Pembayaran
                                         </th>
                                         <th className="px-4 py-4 text-center text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                                             Item
                                         </th>
-                                        <th className="px-4 py-4 text-right text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                                            Total
-                                        </th>
-                                        {/* <th className="px-4 py-4 text-right text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                                            Profit
-                                        </th> */}
-                                        <th className="px-4 py-4 text-center text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider"></th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                                    {rows.map((transaction, index) => (
+                                    <th className="px-4 py-4 text-right text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                                        Total
+                                    </th>
+                                    {/* <th className="px-4 py-4 text-right text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                                        Profit
+                                    </th> */}
+                                    <th className="px-4 py-4 text-center text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider"></th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                                {rows.length > 0 ? (
+                                    rows.map((transaction, index) => (
                                         <tr
                                             key={transaction.id}
                                             className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"
@@ -261,6 +309,11 @@ const History = ({ transactions, filters }) => {
                                                         ?.name ?? "Umum"}
                                                 </span>
                                             </td>
+                                            <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-400">
+                                                {formatPaymentMethod(
+                                                    transaction.payment_method
+                                                )}
+                                            </td>
                                             <td className="px-4 py-4 text-center">
                                                 <span className="px-2 py-1 text-xs font-medium bg-primary-100 dark:bg-primary-900/50 text-primary-700 dark:text-primary-400 rounded-full">
                                                     {transaction.total_items ??
@@ -279,43 +332,49 @@ const History = ({ transactions, filters }) => {
                                                 )}
                                             </td> */}
                                             <td className="px-4 py-4 text-center">
-                                                <Link
-                                                    href={route(
-                                                        "transactions.print",
-                                                        transaction.invoice
-                                                    )}
-                                                    className="inline-flex items-center justify-center w-8 h-8 rounded-lg text-slate-500 hover:text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-950/50 transition-colors"
-                                                    title="Cetak Struk"
-                                                >
-                                                    <IconPrinter size={18} />
-                                                </Link>
+                                                <div className="flex items-center justify-center gap-2">
+                                                    <Link
+                                                        href={route(
+                                                            "transactions.print",
+                                                            transaction.invoice
+                                                        )}
+                                                        className="inline-flex items-center justify-center w-8 h-8 rounded-lg text-slate-500 hover:text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-950/50 transition-colors"
+                                                        title="Cetak Struk"
+                                                    >
+                                                        <IconPrinter
+                                                            size={18}
+                                                        />
+                                                    </Link>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() =>
+                                                            handleCancel(
+                                                                transaction
+                                                            )
+                                                        }
+                                                        className="inline-flex items-center justify-center w-8 h-8 rounded-lg text-slate-500 hover:text-danger-600 hover:bg-danger-50 dark:hover:bg-danger-950/50 transition-colors"
+                                                        title="Batalkan Transaksi"
+                                                    >
+                                                        <IconBan size={18} />
+                                                    </button>
+                                                </div>
                                             </td>
                                         </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
+                                    ))
+                                ) : (
+                                    <tr>
+                                        <td
+                                            colSpan={9}
+                                            className="px-4 py-10 text-center text-sm text-slate-500 dark:text-slate-400"
+                                        >
+                                            Tidak ada transaksi hari ini.
+                                        </td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        </table>
                     </div>
-                ) : (
-                    /* Empty State */
-                    <div className="flex flex-col items-center justify-center py-16 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800">
-                        <div className="w-16 h-16 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center mb-4">
-                            <IconDatabaseOff
-                                size={32}
-                                className="text-slate-400"
-                                strokeWidth={1.5}
-                            />
-                        </div>
-                        <h3 className="text-lg font-medium text-slate-800 dark:text-slate-200 mb-1">
-                            Belum Ada Transaksi
-                        </h3>
-                        <p className="text-sm text-slate-500 dark:text-slate-400">
-                            {hasActiveFilters
-                                ? "Tidak ada transaksi sesuai filter."
-                                : "Transaksi akan muncul di sini."}
-                        </p>
-                    </div>
-                )}
+                </div>
 
                 {links.length > 3 && <Pagination links={links} />}
             </div>
