@@ -6,7 +6,6 @@ import Pagination from "@/Components/Dashboard/Pagination";
 import {
     IconSearch,
     IconHistory,
-    IconCalendar,
     IconReceipt,
     IconPrinter,
     IconFilter,
@@ -26,6 +25,16 @@ const formatCurrency = (value = 0) =>
         currency: "IDR",
         minimumFractionDigits: 0,
     }).format(value);
+
+const formatPaymentMethod = (value = "") => {
+    if (!value) return "-";
+    const normalized = value.toString().toLowerCase();
+    if (normalized === "cash") return "Tunai";
+    if (normalized === "non-cash") return "Non Tunai";
+    return normalized
+        .replace(/[_-]+/g, " ")
+        .replace(/\b\w/g, (char) => char.toUpperCase());
+};
 
 const History = ({ transactions, filters }) => {
     const [filterData, setFilterData] = useState({
@@ -252,12 +261,15 @@ const History = ({ transactions, filters }) => {
                                     <th className="px-4 py-4 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                                         Kasir
                                     </th>
-                                    <th className="px-4 py-4 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                                        Pelanggan
-                                    </th>
-                                    <th className="px-4 py-4 text-center text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                                        Item
-                                    </th>
+                                        <th className="px-4 py-4 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                                            Pelanggan
+                                        </th>
+                                        <th className="px-4 py-4 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                                            Metode Pembayaran
+                                        </th>
+                                        <th className="px-4 py-4 text-center text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                                            Item
+                                        </th>
                                     <th className="px-4 py-4 text-right text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                                         Total
                                     </th>
@@ -296,6 +308,11 @@ const History = ({ transactions, filters }) => {
                                                     {transaction.customer
                                                         ?.name ?? "Umum"}
                                                 </span>
+                                            </td>
+                                            <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-400">
+                                                {formatPaymentMethod(
+                                                    transaction.payment_method
+                                                )}
                                             </td>
                                             <td className="px-4 py-4 text-center">
                                                 <span className="px-2 py-1 text-xs font-medium bg-primary-100 dark:bg-primary-900/50 text-primary-700 dark:text-primary-400 rounded-full">
@@ -347,7 +364,7 @@ const History = ({ transactions, filters }) => {
                                 ) : (
                                     <tr>
                                         <td
-                                            colSpan={8}
+                                            colSpan={9}
                                             className="px-4 py-10 text-center text-sm text-slate-500 dark:text-slate-400"
                                         >
                                             Tidak ada transaksi hari ini.
