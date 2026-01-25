@@ -3,7 +3,7 @@ import { Menu, Transition } from '@headlessui/react'
 import { Link, usePage } from '@inertiajs/react'
 import { IconLogout, IconUserCog } from '@tabler/icons-react'
 import { useForm } from '@inertiajs/react'
-import MenuLink from '@/Utils/Menu'
+import { Menu as MenuLink } from '@/Utils/Menu'
 import LinkItem from './LinkItem'
 import LinkItemDropdown from './LinkItemDropdown'
 export default function AuthDropdown({ auth, isMobile }) {

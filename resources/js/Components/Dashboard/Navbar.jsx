@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { usePage } from "@inertiajs/react";
 import { IconMenu2, IconMoon, IconSun, IconSearch } from "@tabler/icons-react";
 import AuthDropdown from "@/Components/Dashboard/AuthDropdown";
-import Menu from "@/Utils/Menu";
+import { Menu } from "@/Utils/Menu";
 import Notification from "@/Components/Dashboard/Notification";
 
 export default function Navbar({ toggleSidebar, themeSwitcher, darkMode }) {

@@ -25,7 +25,7 @@ import {
 import hasAnyPermission from "./Permission";
 import React from "react";
 
-export default function Menu() {
+function Menu() {
     // define use page
     const { url } = usePage();
 
@@ -179,3 +179,6 @@ export default function Menu() {
 
     return menuNavigation;
 }
+
+export { Menu };
+export default Menu;
