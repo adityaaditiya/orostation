@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Apps\CategoryController;
+use App\Http\Controllers\Apps\CashEntryController;
 use App\Http\Controllers\Apps\CustomerController;
 use App\Http\Controllers\Apps\PaymentSettingController;
 use App\Http\Controllers\Apps\ProductController;
@@ -85,6 +86,8 @@ Route::group(['prefix' => 'dashboard', 'middleware' => ['auth']], function () {
     Route::get('/transactions/{invoice}/print', [TransactionController::class, 'print'])->middleware('permission:transactions-access')->name('transactions.print');
     Route::get('/transactions/history', [TransactionController::class, 'history'])->middleware('permission:transactions-access')->name('transactions.history');
     Route::delete('/transactions/{transaction}/cancel', [TransactionController::class, 'cancel'])->middleware('permission:transactions-access')->name('transactions.cancel');
+    Route::get('/transactions/cash', [CashEntryController::class, 'index'])->middleware('permission:transactions-access')->name('transactions.cash.index');
+    Route::post('/transactions/cash', [CashEntryController::class, 'store'])->middleware('permission:transactions-access')->name('transactions.cash.store');
 
     Route::get('/settings/payments', [PaymentSettingController::class, 'edit'])->middleware('permission:payment-settings-access')->name('settings.payments.edit');
     Route::put('/settings/payments', [PaymentSettingController::class, 'update'])->middleware('permission:payment-settings-access')->name('settings.payments.update');
