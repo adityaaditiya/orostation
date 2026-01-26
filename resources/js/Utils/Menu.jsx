@@ -92,7 +92,7 @@ function Menu() {
                     href: route("transactions.cash.index"),
                     active: url === "/dashboard/transactions/cash" ? true : false,
                     icon: <IconWallet size={20} strokeWidth={1.5} />,
-                    permissions: hasAnyPermission(["transactions-cash-access"]),
+                    permissions: hasAnyPermission(["transactions-access"]),
                 },
             ],
         },
@@ -122,7 +122,7 @@ function Menu() {
                     icon: (
                         <IconChartInfographic size={20} strokeWidth={1.5} />
                     ),
-                    permissions: hasAnyPermission(["reports-cash-access"]),
+                    permissions: hasAnyPermission(["reports-access"]),
                 },
             ],
         },
