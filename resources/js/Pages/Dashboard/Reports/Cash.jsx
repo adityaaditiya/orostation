@@ -191,7 +191,7 @@ const Cash = ({ transactions, summary, filters, cashiers, customers }) => {
                             Laporan Keuangan Cash
                         </h1>
                         <p className="text-sm text-slate-500 dark:text-slate-400">
-                            Ringkasan arus kas transaksi
+                            Ringkasan arus kas transaksi dan uang kas
                         </p>
                     </div>
                     <button
@@ -335,18 +335,16 @@ const Cash = ({ transactions, summary, filters, cashiers, customers }) => {
                                             className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"
                                         >
                                             <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-400">
-                                                Transaksi Penjualan
+                                                {trx.category}
                                             </td>
                                             <td className="px-4 py-4 text-sm font-semibold text-slate-900 dark:text-white">
-                                                {trx.invoice}
+                                                {trx.description}
                                             </td>
                                             <td className="px-4 py-4 text-right text-sm font-semibold text-success-600 dark:text-success-400">
-                                                {formatCurrency(
-                                                    trx.grand_total ?? 0
-                                                )}
+                                                {formatCurrency(trx.cash_in ?? 0)}
                                             </td>
                                             <td className="px-4 py-4 text-right text-sm text-slate-500 dark:text-slate-400">
-                                                {formatCurrency(0)}
+                                                {formatCurrency(trx.cash_out ?? 0)}
                                             </td>
                                         </tr>
                                     ))}
