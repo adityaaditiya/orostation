@@ -20,10 +20,11 @@ class DashboardController extends Controller
         $totalProducts     = Product::count();
         $totalTransactions = Transaction::count();
         $totalUsers        = User::count();
-        $totalRevenue      = Transaction::sum('grand_total');
         $totalProfit       = Profit::sum('total');
-        $averageOrder      = Transaction::avg('grand_total') ?? 0;
-        $todayTransactions = Transaction::whereDate('created_at', Carbon::today())->count();
+        $todayQuery        = Transaction::whereDate('created_at', Carbon::today());
+        $todayTransactions = (clone $todayQuery)->count();
+        $totalRevenue      = (clone $todayQuery)->sum('grand_total');
+        $averageOrder      = (clone $todayQuery)->avg('grand_total') ?? 0;
 
         $revenueTrend      = Transaction::selectRaw('DATE(created_at) as date, SUM(grand_total) as total')
             ->groupBy('date')
