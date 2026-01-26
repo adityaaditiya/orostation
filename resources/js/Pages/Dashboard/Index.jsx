@@ -271,7 +271,7 @@ export default function Dashboard({
                     <StatCard
                         title="Total Pendapatan"
                         value={formatCurrency(totalRevenue)}
-                        subtitle="Akumulasi semua transaksi"
+                        subtitle="Berdasarkan transaksi hari ini"
                         icon={IconCoin}
                         gradient="from-primary-500 to-primary-700"
                     />
@@ -286,7 +286,7 @@ export default function Dashboard({
                     <StatCard
                         title="Rata-Rata Order"
                         value={formatCurrency(averageOrder)}
-                        subtitle="Per transaksi"
+                        subtitle="Per transaksi hari ini"
                         icon={IconReceipt}
                         gradient="from-accent-500 to-accent-700"
                     />
