@@ -72,10 +72,10 @@ class CashReportController extends Controller
             ->first();
 
         $cashEntryTotals = $this->applyCashEntryFilters(CashEntry::query(), $filters)
-            ->selectRaw('
-                COALESCE(SUM(CASE WHEN category = \"in\" THEN amount ELSE 0 END), 0) as cash_in_total,
-                COALESCE(SUM(CASE WHEN category = \"out\" THEN amount ELSE 0 END), 0) as cash_out_total
-            ')
+            ->selectRaw("
+                COALESCE(SUM(CASE WHEN category = 'in' THEN amount ELSE 0 END), 0) as cash_in_total,
+                COALESCE(SUM(CASE WHEN category = 'out' THEN amount ELSE 0 END), 0) as cash_out_total
+            ")
             ->first();
 
         $cashInTotal = (int) ($transactionTotals->cash_in_total ?? 0)
