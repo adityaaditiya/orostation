@@ -300,7 +300,7 @@ export default function Dashboard({
                 </div>
 
                 {/* Secondary Stats */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {/* <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     <InfoCard
                         title="Total Kategori"
                         value={totalCategories}
@@ -316,12 +316,12 @@ export default function Dashboard({
                         value={totalTransactions}
                         icon={IconMoneybag}
                     />
-                    {/* <InfoCard
+                    <InfoCard
                         title="Total Pengguna"
                         value={totalUsers}
                         icon={IconUsers}
-                    /> */}
-                </div>
+                    />
+                </div> */}
 
                 {/* Charts and Lists Row */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

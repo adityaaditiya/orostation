@@ -78,7 +78,7 @@ export default function POSLayout({ children }) {
                             </span>
                         </div>
                         <span className="hidden sm:block text-lg font-bold text-slate-800 dark:text-white">
-                            KASIR
+                            ORO STATION
                         </span>
                     </Link>
 
@@ -139,7 +139,7 @@ export default function POSLayout({ children }) {
                                 {auth.user.name}
                             </p>
                             <p className="text-xs text-slate-500 dark:text-slate-400">
-                                Kasir
+                                ORO STATION
                             </p>
                         </div>
                         <img

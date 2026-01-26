@@ -192,7 +192,7 @@ export default function Login({ status, canResetPassword }) {
                             </button>
 
                             {/* Register Link */}
-                            <p className="text-center text-sm text-slate-600 dark:text-slate-400">
+                            {/* <p className="text-center text-sm text-slate-600 dark:text-slate-400">
                                 Belum punya akun?{" "}
                                 <Link
                                     href="/register"
@@ -200,7 +200,7 @@ export default function Login({ status, canResetPassword }) {
                                 >
                                     Daftar Sekarang
                                 </Link>
-                            </p>
+                            </p> */}
                         </form>
                     </div>
                 </div>

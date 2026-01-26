@@ -256,7 +256,7 @@ export default function Register() {
                             </div>
 
                             {/* Submit */}
-                            <button
+                            {/* <button
                                 type="submit"
                                 disabled={processing}
                                 className="w-full h-12 rounded-xl bg-gradient-to-r from-primary-500 to-primary-600 text-white font-semibold hover:from-primary-600 hover:to-primary-700 focus:ring-4 focus:ring-primary-500/30 disabled:opacity-50 transition-all flex items-center justify-center gap-2"
@@ -272,7 +272,7 @@ export default function Register() {
                                 ) : (
                                     "Daftar Sekarang"
                                 )}
-                            </button>
+                            </button> */}
 
                             {/* Login Link */}
                             <p className="text-center text-sm text-slate-600 dark:text-slate-400">

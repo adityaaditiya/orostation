@@ -302,14 +302,14 @@ const Sales = ({ transactions, summary, filters, cashiers, customers }) => {
                                     placeholder="Semua kasir"
                                     searchable
                                 />
-                                <InputSelect
+                                {/* <InputSelect
                                     label="Pelanggan"
                                     data={customers}
                                     selected={selectedCustomer}
                                     setSelected={handleSelectCustomer}
                                     placeholder="Semua pelanggan"
                                     searchable
-                                />
+                                /> */}
                             </div>
                             <div className="flex justify-end gap-2 mt-4">
                                 {hasActiveFilters && (
