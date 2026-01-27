@@ -78,7 +78,9 @@ class Transaction extends Model
     protected function createdAt(): Attribute
     {
         return Attribute::make(
-            get: fn ($value) => Carbon::parse($value)->format('d-M-Y H:i:s'),
+            get: fn ($value) => Carbon::parse($value)
+                ->timezone(config('app.timezone'))
+                ->format('Y-m-d H:i:s'),
         );
     }
 }
