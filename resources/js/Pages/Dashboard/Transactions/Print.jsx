@@ -165,14 +165,14 @@ export default function Print({ transaction }) {
                                 {printMode === "thermal80" ? (
                                     <ThermalReceipt
                                         transaction={transaction}
-                                        storeName="TOKO ANDA"
-                                        storeAddress="Jl. Contoh No. 123"
+                                        storeName="ORO PADEL"
+                                        storeAddress="Jl. Layur no. 08, Kota Tegal"
                                         storePhone="08123456789"
                                     />
                                 ) : (
                                     <ThermalReceipt58mm
                                         transaction={transaction}
-                                        storeName="TOKO"
+                                        storeName="ORO PADEL"
                                         storePhone="08123456789"
                                     />
                                 )}
