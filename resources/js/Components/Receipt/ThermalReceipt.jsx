@@ -27,6 +27,7 @@ export default function ThermalReceipt({
             year: "numeric",
             hour: "2-digit",
             minute: "2-digit",
+            timeZone: "Asia/Jakarta",
         });
     };
 
@@ -193,6 +194,7 @@ export function ThermalReceipt58mm({
             month: "2-digit",
             hour: "2-digit",
             minute: "2-digit",
+            timeZone: "Asia/Jakarta",
         });
     };
 
