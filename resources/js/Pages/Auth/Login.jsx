@@ -211,12 +211,20 @@ export default function Login({ status, canResetPassword }) {
                         <div className="w-24 h-24 rounded-2xl bg-white/20 flex items-center justify-center mx-auto mb-8">
                             <IconShoppingCart size={48} />
                         </div>
-                        <h2 className="text-3xl font-bold mb-4">
+                        {/* <h2 className="text-3xl font-bold mb-4">
                             Kelola Bisnis Anda dengan Mudah
                         </h2>
                         <p className="text-lg opacity-90">
                             Sistem Point of Sale modern yang membantu Anda
                             mengelola transaksi, inventori, dan laporan keuangan
+                            dengan efisien.
+                        </p> */}
+                        <h2 className="text-3xl font-bold mb-4">
+                            ORO STATION
+                        </h2>
+                        <p className="text-lg opacity-90">
+                            Aplikasi
+                            Kelola transaksi, inventori, dan laporan keuangan
                             dengan efisien.
                         </p>
                         <div className="mt-8 flex flex-wrap justify-center gap-3">
