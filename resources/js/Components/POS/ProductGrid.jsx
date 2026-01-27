@@ -184,7 +184,8 @@ export default function ProductGrid({
                     onChange={onSearchChange}
                     onSearch={onSearch}
                     isSearching={isSearching}
-                    placeholder="Cari produk atau scan barcode... (tekan / untuk fokus)"
+                    placeholder="Cari produk atau scan barcode..."
+                    // placeholder="Cari produk atau scan barcode... (tekan / untuk fokus)"
                     inputRef={searchInputRef}
                 />
             </div>
