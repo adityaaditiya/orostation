@@ -147,13 +147,13 @@ const ProfitReport = ({
             icon: <IconPercentage />,
             gradient: "from-warning-500 to-warning-600",
         },
-        {
-            title: "Transaksi Terbaik",
-            value: stats.best_invoice,
-            description: formatCurrency(stats.best_profit),
-            icon: <IconReceipt />,
-            gradient: "from-accent-500 to-accent-700",
-        },
+        // {
+        //     title: "Transaksi Terbaik",
+        //     value: stats.best_invoice,
+        //     description: formatCurrency(stats.best_profit),
+        //     icon: <IconReceipt />,
+        //     gradient: "from-accent-500 to-accent-700",
+        // },
     ];
 
     return (

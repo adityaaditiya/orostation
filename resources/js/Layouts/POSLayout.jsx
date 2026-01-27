@@ -74,7 +74,7 @@ export default function POSLayout({ children }) {
                     >
                         <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center">
                             <span className="text-white font-bold text-sm">
-                                K
+                                O
                             </span>
                         </div>
                         <span className="hidden sm:block text-lg font-bold text-slate-800 dark:text-white">
