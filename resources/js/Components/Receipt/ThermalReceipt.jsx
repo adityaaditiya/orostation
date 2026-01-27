@@ -135,7 +135,8 @@ export default function ThermalReceipt({
             {/* Payment Info */}
             <div className="my-1">
                 <div className="flex justify-between">
-                    <span>Bayar ({paymentMethod})</span>
+                    {/* <span>Bayar ({paymentMethod})</span> */}
+                    <span>Bayar </span>
                     <span>{formatPrice(cash)}</span>
                 </div>
                 {change > 0 && (
