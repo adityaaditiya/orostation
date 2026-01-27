@@ -26,11 +26,17 @@ export default function CustomerSelect({
     const inputRef = useRef(null);
 
     // Filter customers by search
-    const filteredCustomers = customers.filter(
-        (customer) =>
+    const getCustomerPhone = (customer) =>
+        customer.phone ?? customer.no_telp ?? "";
+
+    const filteredCustomers = customers.filter((customer) => {
+        const phone = getCustomerPhone(customer);
+
+        return (
             customer.name.toLowerCase().includes(search.toLowerCase()) ||
-            customer.phone?.toLowerCase().includes(search.toLowerCase())
-    );
+            phone.toLowerCase().includes(search.toLowerCase())
+        );
+    });
 
     // Close on click outside
     useEffect(() => {
@@ -121,9 +127,9 @@ export default function CustomerSelect({
                                     <p className="text-sm font-medium text-slate-800 dark:text-slate-200 truncate">
                                         {selected.name}
                                     </p>
-                                    {selected.phone && (
+                                    {getCustomerPhone(selected) && (
                                         <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
-                                            {selected.phone}
+                                            {getCustomerPhone(selected)}
                                         </p>
                                     )}
                                 </>
@@ -237,9 +243,9 @@ export default function CustomerSelect({
                                                         {customer.name}
                                                     </p>
                                                     <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
-                                                        {customer.phone ||
-                                                            customer.email ||
-                                                            "-"}
+                                                        {getCustomerPhone(
+                                                            customer
+                                                        ) || "-"}
                                                     </p>
                                                 </div>
                                             </button>
