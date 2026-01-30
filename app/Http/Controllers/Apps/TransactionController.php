@@ -10,6 +10,7 @@ use App\Models\Product;
 use App\Models\Transaction;
 use App\Models\User;
 use App\Services\Payments\PaymentGatewayManager;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -504,10 +505,11 @@ class TransactionController extends Controller
      */
     public function history(Request $request)
     {
+        $defaultDate = Carbon::today()->toDateString();
         $filters = [
             'invoice'    => $request->input('invoice'),
-            'start_date' => $request->input('start_date'),
-            'end_date'   => $request->input('end_date'),
+            'start_date' => $request->input('start_date') ?: $defaultDate,
+            'end_date'   => $request->input('end_date') ?: $defaultDate,
         ];
 
         $query = Transaction::query()
