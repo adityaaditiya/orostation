@@ -8,6 +8,7 @@ use App\Models\Profit;
 use App\Models\Transaction;
 use App\Models\TransactionDetail;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -18,9 +19,10 @@ class SalesReportController extends Controller
      */
     public function index(Request $request)
     {
+        $defaultDate = Carbon::today()->toDateString();
         $filters = [
-            'start_date' => $request->input('start_date'),
-            'end_date' => $request->input('end_date'),
+            'start_date' => $request->input('start_date') ?: $defaultDate,
+            'end_date' => $request->input('end_date') ?: $defaultDate,
             'invoice' => $request->input('invoice'),
             'cashier_id' => $request->input('cashier_id'),
             'customer_id' => $request->input('customer_id'),
