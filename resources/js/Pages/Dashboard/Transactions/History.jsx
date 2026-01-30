@@ -93,31 +93,65 @@ const History = ({ transactions, filters }) => {
             showCancelButton: true,
             confirmButtonColor: "#ef4444",
             cancelButtonColor: "#64748b",
-            confirmButtonText: "Ya, Batalkan!",
+            confirmButtonText: "Lanjutkan",
             cancelButtonText: "Batal",
-        }).then((result) => {
-            if (!result.isConfirmed) return;
+        }).then((confirmResult) => {
+            if (!confirmResult.isConfirmed) return;
 
-            router.delete(route("transactions.cancel", transaction.id), {
-                preserveScroll: true,
-                onSuccess: () => {
-                    Swal.fire({
-                        title: "Berhasil!",
-                        text: "Transaksi berhasil dibatalkan.",
-                        icon: "success",
-                        showConfirmButton: false,
-                        timer: 1500,
-                    });
+            Swal.fire({
+                title: "Otorisasi Super Admin",
+                html: `
+                    <input id="super-admin-email" type="email" class="swal2-input" placeholder="Email super-admin">
+                    <input id="super-admin-password" type="password" class="swal2-input" placeholder="Password super-admin">
+                `,
+                focusConfirm: false,
+                showCancelButton: true,
+                confirmButtonText: "Validasi",
+                cancelButtonText: "Batal",
+                preConfirm: () => {
+                    const email = document
+                        .getElementById("super-admin-email")
+                        ?.value?.trim();
+                    const password =
+                        document.getElementById("super-admin-password")?.value;
+
+                    if (!email || !password) {
+                        Swal.showValidationMessage(
+                            "Email dan password super-admin wajib diisi."
+                        );
+                        return null;
+                    }
+
+                    return { email, password };
                 },
-                onError: (errors) => {
-                    Swal.fire({
-                        title: "Gagal!",
-                        text:
-                            errors?.message ||
-                            "Transaksi gagal dibatalkan.",
-                        icon: "error",
-                    });
-                },
+            }).then((authResult) => {
+                if (!authResult.isConfirmed) return;
+
+                router.delete(route("transactions.cancel", transaction.id), {
+                    data: {
+                        super_admin_email: authResult.value.email,
+                        super_admin_password: authResult.value.password,
+                    },
+                    preserveScroll: true,
+                    onSuccess: () => {
+                        Swal.fire({
+                            title: "Berhasil!",
+                            text: "Transaksi berhasil dibatalkan.",
+                            icon: "success",
+                            showConfirmButton: false,
+                            timer: 1500,
+                        });
+                    },
+                    onError: (errors) => {
+                        Swal.fire({
+                            title: "Gagal!",
+                            text:
+                                errors?.message ||
+                                "Transaksi gagal dibatalkan.",
+                            icon: "error",
+                        });
+                    },
+                });
             });
         });
     };

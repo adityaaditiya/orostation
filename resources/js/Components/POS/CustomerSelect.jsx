@@ -27,14 +27,16 @@ export default function CustomerSelect({
 
     // Filter customers by search
     const getCustomerPhone = (customer) =>
-        customer.phone ?? customer.no_telp ?? "";
+        String(customer.phone ?? customer.no_telp ?? "");
 
     const filteredCustomers = customers.filter((customer) => {
         const phone = getCustomerPhone(customer);
+        const normalizedSearch = search.toLowerCase();
+        const customerName = String(customer.name ?? "");
 
         return (
-            customer.name.toLowerCase().includes(search.toLowerCase()) ||
-            phone.toLowerCase().includes(search.toLowerCase())
+            customerName.toLowerCase().includes(normalizedSearch) ||
+            phone.toLowerCase().includes(normalizedSearch)
         );
     });
 
