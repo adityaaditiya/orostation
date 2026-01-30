@@ -8,10 +8,12 @@ use App\Models\Customer;
 use App\Models\PaymentSetting;
 use App\Models\Product;
 use App\Models\Transaction;
+use App\Models\User;
 use App\Services\Payments\PaymentGatewayManager;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 
@@ -542,6 +544,25 @@ class TransactionController extends Controller
      */
     public function cancel(Request $request, $transactionId)
     {
+        $validated = $request->validate([
+            'super_admin_email' => ['required', 'email'],
+            'super_admin_password' => ['required', 'string'],
+        ]);
+
+        $superAdmin = User::query()
+            ->where('email', $validated['super_admin_email'])
+            ->first();
+
+        if (
+            ! $superAdmin ||
+            ! $superAdmin->isSuperAdmin() ||
+            ! Hash::check($validated['super_admin_password'], $superAdmin->password)
+        ) {
+            return back()->withErrors([
+                'message' => 'Otorisasi super-admin gagal.',
+            ]);
+        }
+
         $query = Transaction::query()->with(['details.product', 'profits']);
 
         if (! $request->user()->isSuperAdmin()) {
