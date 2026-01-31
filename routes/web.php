@@ -62,6 +62,7 @@ Route::group(['prefix' => 'dashboard', 'middleware' => ['auth']], function () {
 
     //route transaction
     Route::get('/transactions', [TransactionController::class, 'index'])->middleware('permission:transactions-access')->name('transactions.index');
+    Route::get('/transactions/customers/search', [TransactionController::class, 'searchCustomers'])->middleware('permission:transactions-access')->name('transactions.customers.search');
 
     //route transaction searchProduct
     Route::post('/transactions/searchProduct', [TransactionController::class, 'searchProduct'])->middleware('permission:transactions-access')->name('transactions.searchProduct');
