@@ -26,7 +26,7 @@ class ProfitReportController extends Controller
         ];
 
         $baseQuery = $this->applyFilters(
-            Transaction::query()
+            Transaction::query()->notCanceled()
                 ->with(['cashier:id,name', 'customer:id,name'])
                 ->withSum('profits as total_profit', 'total')
                 ->withSum('details as total_items', 'qty'),

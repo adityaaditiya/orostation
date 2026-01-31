@@ -174,7 +174,8 @@ class CustomerController extends Controller
     public function getHistory(Customer $customer)
     {
         // Get transaction statistics
-        $stats = Transaction::where('customer_id', $customer->id)
+        $stats = Transaction::notCanceled()
+            ->where('customer_id', $customer->id)
             ->selectRaw('
                 COUNT(*) as total_transactions,
                 SUM(grand_total) as total_spent,
@@ -183,7 +184,8 @@ class CustomerController extends Controller
             ->first();
 
         // Get recent transactions (last 5)
-        $recentTransactions = Transaction::where('customer_id', $customer->id)
+        $recentTransactions = Transaction::notCanceled()
+            ->where('customer_id', $customer->id)
             ->select('id', 'invoice', 'grand_total', 'payment_method', 'created_at')
             ->orderByDesc('created_at')
             ->limit(5)
@@ -197,7 +199,8 @@ class CustomerController extends Controller
             ]);
 
         // Get frequently purchased products
-        $frequentProducts = Transaction::where('customer_id', $customer->id)
+        $frequentProducts = Transaction::notCanceled()
+            ->where('customer_id', $customer->id)
             ->join('transaction_details', 'transactions.id', '=', 'transaction_details.transaction_id')
             ->join('products', 'transaction_details.product_id', '=', 'products.id')
             ->selectRaw('products.id, products.title, SUM(transaction_details.qty) as total_qty')

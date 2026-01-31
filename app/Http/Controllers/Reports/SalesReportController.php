@@ -29,7 +29,7 @@ class SalesReportController extends Controller
         ];
 
         $baseListQuery = $this->applyFilters(
-            Transaction::query()
+            Transaction::query()->notCanceled()
                 ->with(['cashier:id,name', 'customer:id,name'])
                 ->withSum('details as total_items', 'qty')
                 ->withSum('profits as total_profit', 'total'),
@@ -40,7 +40,7 @@ class SalesReportController extends Controller
             ->paginate(10)
             ->withQueryString();
 
-        $aggregateQuery = $this->applyFilters(Transaction::query(), $filters);
+        $aggregateQuery = $this->applyFilters(Transaction::query()->notCanceled(), $filters);
 
         $totals = (clone $aggregateQuery)
             ->selectRaw('

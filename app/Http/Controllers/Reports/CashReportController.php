@@ -30,7 +30,7 @@ class CashReportController extends Controller
         ];
 
         $transactionQuery = $this->applyFilters(
-            Transaction::query()
+            Transaction::query()->notCanceled()
                 ->with(['cashier:id,name', 'customer:id,name']),
             $filters
         )->orderByDesc('created_at');
@@ -69,7 +69,7 @@ class CashReportController extends Controller
 
         $transactions = $this->paginateRows($mergedRows, $request);
 
-        $transactionTotals = $this->applyFilters(Transaction::query(), $filters)
+        $transactionTotals = $this->applyFilters(Transaction::query()->notCanceled(), $filters)
             ->selectRaw('COALESCE(SUM(grand_total), 0) as cash_in_total')
             ->first();
 

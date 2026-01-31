@@ -10,6 +10,10 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 class Transaction extends Model
 {
     use HasFactory;
+
+    protected $casts = [
+        'canceled_at' => 'datetime',
+    ];
     
     /**
      * fillable
@@ -28,7 +32,15 @@ class Transaction extends Model
         'payment_status',
         'payment_reference',
         'payment_url',
+        'canceled_at',
+        'cancellation_note',
+        'canceled_by_email',
     ];
+
+    public function scopeNotCanceled($query)
+    {
+        return $query->whereNull('canceled_at');
+    }
 
     /**
      * details

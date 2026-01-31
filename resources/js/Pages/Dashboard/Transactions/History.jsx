@@ -313,6 +313,15 @@ const History = ({ transactions, filters }) => {
                                     <th className="px-4 py-4 text-right text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                                         Total
                                     </th>
+                                    <th className="px-4 py-4 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                                        Keterangan Otorisasi
+                                    </th>
+                                    <th className="px-4 py-4 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                                        Email Otorisasi
+                                    </th>
+                                    <th className="px-4 py-4 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                                        Waktu Otorisasi
+                                    </th>
                                     {/* <th className="px-4 py-4 text-right text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                                         Profit
                                     </th> */}
@@ -365,6 +374,17 @@ const History = ({ transactions, filters }) => {
                                                     transaction.grand_total ?? 0
                                                 )}
                                             </td>
+                                            <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-400">
+                                                {transaction.cancellation_note ||
+                                                    "-"}
+                                            </td>
+                                            <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-400">
+                                                {transaction.canceled_by_email ||
+                                                    "-"}
+                                            </td>
+                                            <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-400">
+                                                {transaction.canceled_at || "-"}
+                                            </td>
                                             {/* <td className="px-4 py-4 text-right text-sm font-semibold text-success-600 dark:text-success-400">
                                                 {formatCurrency(
                                                     transaction.total_profit ??
@@ -385,18 +405,26 @@ const History = ({ transactions, filters }) => {
                                                             size={18}
                                                         />
                                                     </Link>
-                                                    <button
-                                                        type="button"
-                                                        onClick={() =>
-                                                            handleCancel(
-                                                                transaction
-                                                            )
-                                                        }
-                                                        className="inline-flex items-center justify-center w-8 h-8 rounded-lg text-slate-500 hover:text-danger-600 hover:bg-danger-50 dark:hover:bg-danger-950/50 transition-colors"
-                                                        title="Batalkan Transaksi"
-                                                    >
-                                                        <IconBan size={18} />
-                                                    </button>
+                                                    {transaction.canceled_at ? (
+                                                        <span className="px-2 py-1 text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 rounded-md">
+                                                            Dibatalkan
+                                                        </span>
+                                                    ) : (
+                                                        <button
+                                                            type="button"
+                                                            onClick={() =>
+                                                                handleCancel(
+                                                                    transaction
+                                                                )
+                                                            }
+                                                            className="inline-flex items-center justify-center w-8 h-8 rounded-lg text-slate-500 hover:text-danger-600 hover:bg-danger-50 dark:hover:bg-danger-950/50 transition-colors"
+                                                            title="Batalkan Transaksi"
+                                                        >
+                                                            <IconBan
+                                                                size={18}
+                                                            />
+                                                        </button>
+                                                    )}
                                                 </div>
                                             </td>
                                         </tr>
@@ -404,7 +432,7 @@ const History = ({ transactions, filters }) => {
                                 ) : (
                                     <tr>
                                         <td
-                                            colSpan={9}
+                                            colSpan={12}
                                             className="px-4 py-10 text-center text-sm text-slate-500 dark:text-slate-400"
                                         >
                                             Tidak ada transaksi hari ini.
