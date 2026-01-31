@@ -164,13 +164,13 @@ const Authorization = ({ transactions, filters }) => {
                                         Kasir
                                     </th>
                                     <th className="px-4 py-4 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                                        Keterangan Otorisasi
+                                        Keterangan
                                     </th>
                                     <th className="px-4 py-4 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                                        Email Otorisasi
+                                        Username / Email
                                     </th>
                                     <th className="px-4 py-4 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                                        Waktu Otorisasi
+                                        Waktu
                                     </th>
                                 </tr>
                             </thead>
@@ -187,9 +187,8 @@ const Authorization = ({ transactions, filters }) => {
                                                     ((transactions?.current_page ??
                                                         1) -
                                                         1) *
-                                                        (transactions?.per_page ??
-                                                            rows.length ||
-                                                            1)}
+                                                        ((transactions?.per_page ?? rows.length) || 1)
+}
                                             </td>
                                             <td className="px-4 py-4 text-sm font-semibold text-slate-900 dark:text-white">
                                                 {transaction.invoice ?? "-"}

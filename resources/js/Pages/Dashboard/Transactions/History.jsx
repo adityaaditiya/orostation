@@ -99,11 +99,11 @@ const History = ({ transactions, filters }) => {
             if (!confirmResult.isConfirmed) return;
 
             Swal.fire({
-                title: "Otorisasi Super Admin",
+                title: "Otorisasi",
                 html: `
                     <input id="super-admin-authorization-note" type="text" class="swal2-input" placeholder="Keterangan otorisasi">
-                    <input id="super-admin-email" type="email" class="swal2-input" placeholder="Email super-admin">
-                    <input id="super-admin-password" type="password" class="swal2-input" placeholder="Password super-admin">
+                    <input id="super-admin-email" type="email" class="swal2-input" placeholder="Username / Email">
+                    <input id="super-admin-password" type="password" class="swal2-input" placeholder="Password">
                 `,
                 focusConfirm: false,
                 showCancelButton: true,
@@ -313,7 +313,7 @@ const History = ({ transactions, filters }) => {
                                     <th className="px-4 py-4 text-right text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                                         Total
                                     </th>
-                                    <th className="px-4 py-4 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                                    {/* <th className="px-4 py-4 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                                         Keterangan Otorisasi
                                     </th>
                                     <th className="px-4 py-4 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
@@ -321,7 +321,7 @@ const History = ({ transactions, filters }) => {
                                     </th>
                                     <th className="px-4 py-4 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                                         Waktu Otorisasi
-                                    </th>
+                                    </th> */}
                                     {/* <th className="px-4 py-4 text-right text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                                         Profit
                                     </th> */}
@@ -374,7 +374,7 @@ const History = ({ transactions, filters }) => {
                                                     transaction.grand_total ?? 0
                                                 )}
                                             </td>
-                                            <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-400">
+                                            {/* <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-400">
                                                 {transaction.cancellation_note ||
                                                     "-"}
                                             </td>
@@ -384,7 +384,7 @@ const History = ({ transactions, filters }) => {
                                             </td>
                                             <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-400">
                                                 {transaction.canceled_at || "-"}
-                                            </td>
+                                            </td> */}
                                             {/* <td className="px-4 py-4 text-right text-sm font-semibold text-success-600 dark:text-success-400">
                                                 {formatCurrency(
                                                     transaction.total_profit ??

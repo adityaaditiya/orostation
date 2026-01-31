@@ -87,6 +87,18 @@ class Transaction extends Model
      *
      * @return Attribute
      */
+
+    protected function canceledAt(): Attribute
+{
+    return Attribute::make(
+        get: fn ($value) => $value
+            ? Carbon::parse($value)
+                ->timezone(config('app.timezone'))
+                ->format('Y-m-d H:i:s')
+            : null,
+    );
+}
+
     protected function createdAt(): Attribute
     {
         return Attribute::make(
