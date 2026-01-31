@@ -54,8 +54,11 @@ class TransactionController extends Controller
             })
             ->values();
 
-        //get all customers
-        $customers = Customer::latest()->get();
+        //get 30 latest customers for initial dropdown
+        $customers = Customer::select('id', 'name', 'no_telp', 'address')
+            ->latest()
+            ->take(30)
+            ->get();
 
         // get all products with categories for product grid
         $products = Product::with('category:id,name')
@@ -117,6 +120,36 @@ class TransactionController extends Controller
         return response()->json([
             'success' => false,
             'data'    => null,
+        ]);
+    }
+
+    /**
+     * searchCustomers
+     *
+     * @param  mixed $request
+     * @return void
+     */
+    public function searchCustomers(Request $request)
+    {
+        $search = trim((string) $request->input('search', ''));
+
+        if ($search === '') {
+            return response()->json([
+                'data' => [],
+            ]);
+        }
+
+        $customers = Customer::select('id', 'name', 'no_telp', 'address')
+            ->where(function (Builder $query) use ($search) {
+                $query->where('name', 'like', '%' . $search . '%')
+                    ->orWhere('no_telp', 'like', '%' . $search . '%')
+                    ->orWhere('address', 'like', '%' . $search . '%');
+            })
+            ->orderBy('name')
+            ->get();
+
+        return response()->json([
+            'data' => $customers,
         ]);
     }
 
@@ -547,6 +580,7 @@ class TransactionController extends Controller
     public function cancel(Request $request, $transactionId)
     {
         $validated = $request->validate([
+            'authorization_note' => ['nullable', 'string'],
             'super_admin_email' => ['required', 'email'],
             'super_admin_password' => ['required', 'string'],
         ]);
@@ -577,16 +611,23 @@ class TransactionController extends Controller
             return back()->withErrors(['message' => 'Transaksi tidak ditemukan.']);
         }
 
-        DB::transaction(function () use ($transaction) {
+        if ($transaction->canceled_at) {
+            return back()->withErrors(['message' => 'Transaksi sudah dibatalkan.']);
+        }
+
+        DB::transaction(function () use ($transaction, $validated) {
             foreach ($transaction->details as $detail) {
                 if ($detail->product) {
                     $detail->product->increment('stock', $detail->qty);
                 }
             }
 
-            $transaction->profits()->delete();
-            $transaction->details()->delete();
-            $transaction->delete();
+            $transaction->update([
+                'canceled_at' => now(),
+                'cancellation_note' => $validated['authorization_note'] ?? null,
+                'canceled_by_email' => $validated['super_admin_email'],
+                'payment_status' => 'canceled',
+            ]);
         });
 
         return back()->with('success', 'Transaksi berhasil dibatalkan.');

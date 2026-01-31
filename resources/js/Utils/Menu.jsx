@@ -124,6 +124,13 @@ function Menu() {
                     ),
                     permissions: hasAnyPermission(["reports-access"]),
                 },
+                {
+                    title: "Laporan Otorisasi",
+                    href: route("reports.authorizations.index"),
+                    active: url.startsWith("/dashboard/reports/authorizations"),
+                    icon: <IconFileCertificate size={20} strokeWidth={1.5} />,
+                    permissions: hasAnyPermission(["reports-access"]),
+                },
             ],
         },
         {

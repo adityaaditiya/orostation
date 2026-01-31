@@ -18,15 +18,17 @@ class DashboardController extends Controller
     {
         $totalCategories   = Category::count();
         $totalProducts     = Product::count();
-        $totalTransactions = Transaction::count();
+        $totalTransactions = Transaction::notCanceled()->count();
         $totalUsers        = User::count();
-        $totalProfit       = Profit::sum('total');
-        $todayQuery        = Transaction::whereDate('created_at', Carbon::today());
+        $totalProfit       = Profit::whereHas('transaction', fn ($query) => $query->notCanceled())
+            ->sum('total');
+        $todayQuery        = Transaction::notCanceled()->whereDate('created_at', Carbon::today());
         $todayTransactions = (clone $todayQuery)->count();
         $totalRevenue      = (clone $todayQuery)->sum('grand_total');
         $averageOrder      = (clone $todayQuery)->avg('grand_total') ?? 0;
 
-        $revenueTrend      = Transaction::selectRaw('DATE(created_at) as date, SUM(grand_total) as total')
+        $revenueTrend      = Transaction::notCanceled()
+            ->selectRaw('DATE(created_at) as date, SUM(grand_total) as total')
             ->groupBy('date')
             ->orderBy('date', 'desc')
             ->take(12)
@@ -43,6 +45,7 @@ class DashboardController extends Controller
 
         $topProducts = TransactionDetail::select('product_id', DB::raw('SUM(qty) as qty'), DB::raw('SUM(price) as total'))
             ->with('product:id,title')
+            ->whereHas('transaction', fn ($query) => $query->notCanceled())
             ->groupBy('product_id')
             ->orderByDesc('qty')
             ->take(5)
@@ -55,7 +58,8 @@ class DashboardController extends Controller
                 ];
             });
 
-        $recentTransactions = Transaction::with('cashier:id,name', 'customer:id,name')
+        $recentTransactions = Transaction::notCanceled()
+            ->with('cashier:id,name', 'customer:id,name')
             ->latest()
             ->take(5)
             ->get()
@@ -69,7 +73,8 @@ class DashboardController extends Controller
                 ];
             });
 
-        $topCustomers = Transaction::select('customer_id', DB::raw('COUNT(*) as orders'), DB::raw('SUM(grand_total) as total'))
+        $topCustomers = Transaction::notCanceled()
+            ->select('customer_id', DB::raw('COUNT(*) as orders'), DB::raw('SUM(grand_total) as total'))
             ->with('customer:id,name')
             ->whereNotNull('customer_id')
             ->groupBy('customer_id')

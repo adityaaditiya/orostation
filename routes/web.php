@@ -10,6 +10,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Reports\ProfitReportController;
+use App\Http\Controllers\Reports\AuthorizationReportController;
 use App\Http\Controllers\Reports\CashReportController;
 use App\Http\Controllers\Reports\SalesReportController;
 use App\Http\Controllers\RoleController;
@@ -62,6 +63,7 @@ Route::group(['prefix' => 'dashboard', 'middleware' => ['auth']], function () {
 
     //route transaction
     Route::get('/transactions', [TransactionController::class, 'index'])->middleware('permission:transactions-access')->name('transactions.index');
+    Route::get('/transactions/customers/search', [TransactionController::class, 'searchCustomers'])->middleware('permission:transactions-access')->name('transactions.customers.search');
 
     //route transaction searchProduct
     Route::post('/transactions/searchProduct', [TransactionController::class, 'searchProduct'])->middleware('permission:transactions-access')->name('transactions.searchProduct');
@@ -96,6 +98,7 @@ Route::group(['prefix' => 'dashboard', 'middleware' => ['auth']], function () {
     Route::get('/reports/sales', [SalesReportController::class, 'index'])->middleware('permission:reports-access')->name('reports.sales.index');
     Route::get('/reports/profits', [ProfitReportController::class, 'index'])->middleware('permission:profits-access')->name('reports.profits.index');
     Route::get('/reports/cash', [CashReportController::class, 'index'])->middleware('permission:reports-access')->name('reports.cash.index');
+    Route::get('/reports/authorizations', [AuthorizationReportController::class, 'index'])->middleware('permission:reports-access')->name('reports.authorizations.index');
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
