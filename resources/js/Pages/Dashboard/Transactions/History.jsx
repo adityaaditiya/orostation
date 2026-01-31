@@ -101,6 +101,7 @@ const History = ({ transactions, filters }) => {
             Swal.fire({
                 title: "Otorisasi Super Admin",
                 html: `
+                    <input id="super-admin-authorization-note" type="text" class="swal2-input" placeholder="Keterangan otorisasi">
                     <input id="super-admin-email" type="email" class="swal2-input" placeholder="Email super-admin">
                     <input id="super-admin-password" type="password" class="swal2-input" placeholder="Password super-admin">
                 `,
@@ -109,6 +110,9 @@ const History = ({ transactions, filters }) => {
                 confirmButtonText: "Validasi",
                 cancelButtonText: "Batal",
                 preConfirm: () => {
+                    const authorizationNote = document
+                        .getElementById("super-admin-authorization-note")
+                        ?.value?.trim();
                     const email = document
                         .getElementById("super-admin-email")
                         ?.value?.trim();
@@ -122,13 +126,15 @@ const History = ({ transactions, filters }) => {
                         return null;
                     }
 
-                    return { email, password };
+                    return { authorizationNote, email, password };
                 },
             }).then((authResult) => {
                 if (!authResult.isConfirmed) return;
 
                 router.delete(route("transactions.cancel", transaction.id), {
                     data: {
+                        authorization_note:
+                            authResult.value.authorizationNote || "",
                         super_admin_email: authResult.value.email,
                         super_admin_password: authResult.value.password,
                     },
