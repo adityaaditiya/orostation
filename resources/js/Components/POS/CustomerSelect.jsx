@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
+import axios from "axios";
 import { router } from "@inertiajs/react";
 import {
     IconUser,
@@ -22,6 +23,8 @@ export default function CustomerSelect({
     const [isOpen, setIsOpen] = useState(false);
     const [search, setSearch] = useState("");
     const [showAddModal, setShowAddModal] = useState(false);
+    const [searchResults, setSearchResults] = useState([]);
+    const [isSearching, setIsSearching] = useState(false);
     const containerRef = useRef(null);
     const inputRef = useRef(null);
 
@@ -29,16 +32,10 @@ export default function CustomerSelect({
     const getCustomerPhone = (customer) =>
         String(customer.phone ?? customer.no_telp ?? "");
 
-    const filteredCustomers = customers.filter((customer) => {
-        const phone = getCustomerPhone(customer);
-        const normalizedSearch = search.toLowerCase();
-        const customerName = String(customer.name ?? "");
-
-        return (
-            customerName.toLowerCase().includes(normalizedSearch) ||
-            phone.toLowerCase().includes(normalizedSearch)
-        );
-    });
+    const trimmedSearch = search.trim();
+    const displayedCustomers = trimmedSearch
+        ? searchResults
+        : customers;
 
     // Close on click outside
     useEffect(() => {
@@ -61,6 +58,50 @@ export default function CustomerSelect({
             inputRef.current.focus();
         }
     }, [isOpen]);
+
+    useEffect(() => {
+        if (!isOpen) {
+            return;
+        }
+
+        if (!trimmedSearch) {
+            setSearchResults([]);
+            setIsSearching(false);
+            return;
+        }
+
+        let isActive = true;
+        setIsSearching(true);
+
+        const timeoutId = setTimeout(async () => {
+            try {
+                const response = await axios.get(
+                    route("transactions.customers.search"),
+                    {
+                        params: {
+                            search: trimmedSearch,
+                        },
+                    }
+                );
+
+                if (!isActive) return;
+
+                setSearchResults(response?.data?.data ?? []);
+            } catch (error) {
+                if (!isActive) return;
+                setSearchResults([]);
+            } finally {
+                if (isActive) {
+                    setIsSearching(false);
+                }
+            }
+        }, 300);
+
+        return () => {
+            isActive = false;
+            clearTimeout(timeoutId);
+        };
+    }, [trimmedSearch, isOpen]);
 
     const handleSelect = (customer) => {
         onSelect(customer);
@@ -190,7 +231,7 @@ export default function CustomerSelect({
                                     type="text"
                                     value={search}
                                     onChange={(e) => setSearch(e.target.value)}
-                                    placeholder="Cari nama/telepon..."
+                                    placeholder="Cari nama/telepon/alamat..."
                                     className="w-full h-10 pl-10 pr-4 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm text-slate-800 dark:text-slate-200 placeholder-slate-400 focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all"
                                 />
                             </div>
@@ -198,9 +239,9 @@ export default function CustomerSelect({
 
                         {/* Customer List */}
                         <div className="max-h-60 overflow-y-auto scrollbar-thin">
-                            {filteredCustomers.length > 0 ? (
+                            {displayedCustomers.length > 0 ? (
                                 <ul>
-                                    {filteredCustomers.map((customer) => (
+                                    {displayedCustomers.map((customer) => (
                                         <li key={customer.id}>
                                             <button
                                                 type="button"
@@ -261,7 +302,9 @@ export default function CustomerSelect({
                                         className="mx-auto mb-2 opacity-50"
                                     />
                                     <p className="text-sm">
-                                        Pelanggan tidak ditemukan
+                                        {isSearching
+                                            ? "Mencari pelanggan..."
+                                            : "Pelanggan tidak ditemukan"}
                                     </p>
                                     <button
                                         type="button"
