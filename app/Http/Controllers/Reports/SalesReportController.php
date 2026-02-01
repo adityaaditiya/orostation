@@ -106,8 +106,10 @@ class SalesReportController extends Controller
             return [
                 $index + 1,
                 $trx->invoice,
-                $trx->created_at?->format('Y-m-d H:i') ?? '-',
-                $trx->customer?->name ?? '-',
+                $trx->created_at
+                    ? Carbon::parse($trx->created_at)->format('Y-m-d H:i')
+                    : '-',
+                    $trx->customer?->name ?? '-',
                 $trx->cashier?->name ?? '-',
                 (int) ($trx->total_items ?? 0),
                 $this->formatCurrency((int) ($trx->grand_total ?? 0)),
