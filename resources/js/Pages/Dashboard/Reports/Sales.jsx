@@ -399,7 +399,7 @@ const Sales = ({ transactions, summary, filters, cashiers, customers }) => {
                                                                       (detail) =>
                                                                           detail
                                                                               ?.product
-                                                                              ?.name
+                                                                              ?.title
                                                                   )
                                                                   .filter(
                                                                       Boolean

@@ -30,7 +30,7 @@ class SalesReportController extends Controller
 
         $baseListQuery = $this->applyFilters(
             Transaction::query()->notCanceled()
-                ->with(['cashier:id,name', 'customer:id,name', 'details.product:id,name'])
+                ->with(['cashier:id,name', 'customer:id,name', 'details.product:id,title'])
                 ->withSum('details as total_items', 'qty')
                 ->withSum('profits as total_profit', 'total'),
             $filters
@@ -96,7 +96,7 @@ class SalesReportController extends Controller
 
         $transactions = $this->applyFilters(
             Transaction::query()->notCanceled()
-                ->with(['cashier:id,name', 'customer:id,name', 'details.product:id,name'])
+                ->with(['cashier:id,name', 'customer:id,name', 'details.product:id,title'])
                 ->withSum('details as total_items', 'qty'),
             $filters
         )->orderByDesc('created_at')->get();
@@ -104,7 +104,7 @@ class SalesReportController extends Controller
         $headers = ['No', 'Invoice', 'Produk', 'Tanggal', 'Pelanggan', 'Kasir', 'Item', 'Total'];
         $rows = $transactions->values()->map(function ($trx, $index) {
             $productNames = $trx->details
-                ->pluck('product.name')
+                ->pluck('product.title')
                 ->filter()
                 ->unique()
                 ->implode(', ');
