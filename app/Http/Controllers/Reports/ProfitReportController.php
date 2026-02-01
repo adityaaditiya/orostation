@@ -100,7 +100,8 @@ class ProfitReportController extends Controller
             return [
                 $index + 1,
                 $trx->invoice,
-                $trx->created_at?->format('Y-m-d H:i') ?? '-',
+                $trx->created_at
+                    ? Carbon::parse($trx->created_at)->format('Y-m-d H:i') : '-',
                 $trx->cashier?->name ?? '-',
                 $trx->customer?->name ?? '-',
                 (int) ($trx->total_items ?? 0),
