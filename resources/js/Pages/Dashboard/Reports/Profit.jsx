@@ -2,11 +2,13 @@ import React, { useEffect, useState } from "react";
 import { Head, router } from "@inertiajs/react";
 import DashboardLayout from "@/Layouts/DashboardLayout";
 import InputSelect from "@/Components/Dashboard/InputSelect";
+import Button from "@/Components/Dashboard/Button";
 import Table from "@/Components/Dashboard/Table";
 import Pagination from "@/Components/Dashboard/Pagination";
 import {
     IconCoin,
     IconDatabaseOff,
+    IconFileSpreadsheet,
     IconPercentage,
     IconReceipt,
     IconTrendingUp,
@@ -156,6 +158,10 @@ const ProfitReport = ({
         // },
     ];
 
+    const handleExport = () => {
+        window.location.href = route("reports.profits.export", filterData);
+    };
+
     return (
         <>
             <Head title="Laporan Keuntungan" />
@@ -302,79 +308,91 @@ const ProfitReport = ({
 
                 {/* Table */}
                 {rows.length > 0 ? (
-                    <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden">
-                        <div className="overflow-x-auto">
-                            <table className="w-full">
-                                <thead>
-                                    <tr className="border-b border-slate-100 dark:border-slate-800">
-                                        <th className="px-4 py-4 text-left text-xs font-semibold text-slate-500 uppercase">
-                                            No
-                                        </th>
-                                        <th className="px-4 py-4 text-left text-xs font-semibold text-slate-500 uppercase">
-                                            Invoice
-                                        </th>
-                                        <th className="px-4 py-4 text-left text-xs font-semibold text-slate-500 uppercase">
-                                            Tanggal
-                                        </th>
-                                        <th className="px-4 py-4 text-left text-xs font-semibold text-slate-500 uppercase">
-                                            Kasir
-                                        </th>
-                                        <th className="px-4 py-4 text-left text-xs font-semibold text-slate-500 uppercase">
-                                            Pelanggan
-                                        </th>
-                                        <th className="px-4 py-4 text-center text-xs font-semibold text-slate-500 uppercase">
-                                            Item
-                                        </th>
-                                        <th className="px-4 py-4 text-right text-xs font-semibold text-slate-500 uppercase">
-                                            Penjualan
-                                        </th>
-                                        <th className="px-4 py-4 text-right text-xs font-semibold text-slate-500 uppercase">
-                                            Profit
-                                        </th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                                    {rows.map((trx, i) => (
-                                        <tr
-                                            key={trx.id}
-                                            className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"
-                                        >
-                                            <td className="px-4 py-4 text-sm text-slate-600">
-                                                {i +
-                                                    1 +
-                                                    (currentPage - 1) * perPage}
-                                            </td>
-                                            <td className="px-4 py-4 text-sm font-semibold text-slate-900 dark:text-white">
-                                                {trx.invoice}
-                                            </td>
-                                            <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-400">
-                                                {trx.created_at}
-                                            </td>
-                                            <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-400">
-                                                {trx.cashier?.name ?? "-"}
-                                            </td>
-                                            <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-400">
-                                                {trx.customer?.name ?? "-"}
-                                            </td>
-                                            <td className="px-4 py-4 text-center">
-                                                <span className="px-2 py-0.5 text-xs font-medium bg-primary-100 dark:bg-primary-900/50 text-primary-700 dark:text-primary-400 rounded-full">
-                                                    {trx.total_items ?? 0}
-                                                </span>
-                                            </td>
-                                            <td className="px-4 py-4 text-right text-sm text-slate-900 dark:text-white">
-                                                {formatCurrency(
-                                                    trx.grand_total ?? 0
-                                                )}
-                                            </td>
-                                            <td className="px-4 py-4 text-right text-sm font-semibold text-success-600 dark:text-success-400">
-                                                {formatCurrency(
-                                                    trx.total_profit ?? 0
-                                                )}
-                                            </td>
+                    <div className="space-y-4">
+                        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden">
+                            <div className="overflow-x-auto">
+                                <table className="w-full">
+                                    <thead>
+                                        <tr className="border-b border-slate-100 dark:border-slate-800">
+                                            <th className="px-4 py-4 text-left text-xs font-semibold text-slate-500 uppercase">
+                                                No
+                                            </th>
+                                            <th className="px-4 py-4 text-left text-xs font-semibold text-slate-500 uppercase">
+                                                Invoice
+                                            </th>
+                                            <th className="px-4 py-4 text-left text-xs font-semibold text-slate-500 uppercase">
+                                                Tanggal
+                                            </th>
+                                            <th className="px-4 py-4 text-left text-xs font-semibold text-slate-500 uppercase">
+                                                Kasir
+                                            </th>
+                                            <th className="px-4 py-4 text-left text-xs font-semibold text-slate-500 uppercase">
+                                                Pelanggan
+                                            </th>
+                                            <th className="px-4 py-4 text-center text-xs font-semibold text-slate-500 uppercase">
+                                                Item
+                                            </th>
+                                            <th className="px-4 py-4 text-right text-xs font-semibold text-slate-500 uppercase">
+                                                Penjualan
+                                            </th>
+                                            <th className="px-4 py-4 text-right text-xs font-semibold text-slate-500 uppercase">
+                                                Profit
+                                            </th>
                                         </tr>
-                                    ))}
-                                </tbody>
-                            </table>
+                                    </thead>
+                                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                                        {rows.map((trx, i) => (
+                                            <tr
+                                                key={trx.id}
+                                                className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"
+                                            >
+                                                <td className="px-4 py-4 text-sm text-slate-600">
+                                                    {i +
+                                                        1 +
+                                                        (currentPage - 1) *
+                                                            perPage}
+                                                </td>
+                                                <td className="px-4 py-4 text-sm font-semibold text-slate-900 dark:text-white">
+                                                    {trx.invoice}
+                                                </td>
+                                                <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-400">
+                                                    {trx.created_at}
+                                                </td>
+                                                <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-400">
+                                                    {trx.cashier?.name ?? "-"}
+                                                </td>
+                                                <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-400">
+                                                    {trx.customer?.name ?? "-"}
+                                                </td>
+                                                <td className="px-4 py-4 text-center">
+                                                    <span className="px-2 py-0.5 text-xs font-medium bg-primary-100 dark:bg-primary-900/50 text-primary-700 dark:text-primary-400 rounded-full">
+                                                        {trx.total_items ?? 0}
+                                                    </span>
+                                                </td>
+                                                <td className="px-4 py-4 text-right text-sm text-slate-900 dark:text-white">
+                                                    {formatCurrency(
+                                                        trx.grand_total ?? 0
+                                                    )}
+                                                </td>
+                                                <td className="px-4 py-4 text-right text-sm font-semibold text-success-600 dark:text-success-400">
+                                                    {formatCurrency(
+                                                        trx.total_profit ?? 0
+                                                    )}
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div className="flex justify-end">
+                            <Button
+                                type="button"
+                                label="Export Excel"
+                                icon={<IconFileSpreadsheet size={18} />}
+                                className="bg-success-500 hover:bg-success-600 text-white"
+                                onClick={handleExport}
+                            />
                         </div>
                     </div>
                 ) : (
