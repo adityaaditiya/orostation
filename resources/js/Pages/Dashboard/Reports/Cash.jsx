@@ -2,11 +2,13 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Head, router } from "@inertiajs/react";
 import DashboardLayout from "@/Layouts/DashboardLayout";
 import InputSelect from "@/Components/Dashboard/InputSelect";
+import Button from "@/Components/Dashboard/Button";
 import Pagination from "@/Components/Dashboard/Pagination";
 import {
     IconArrowDownCircle,
     IconArrowUpCircle,
     IconDatabaseOff,
+    IconFileSpreadsheet,
     IconFilter,
     IconSearch,
     IconX,
@@ -309,47 +311,61 @@ const Cash = ({ transactions, summary, filters, cashiers, customers }) => {
                 )}
 
                 {rows.length > 0 ? (
-                    <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden">
-                        <div className="overflow-x-auto">
-                            <table className="w-full">
-                                <thead>
-                                    <tr className="border-b border-slate-100 dark:border-slate-800">
-                                        <th className="px-4 py-4 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">
-                                            Kategori
-                                        </th>
-                                        <th className="px-4 py-4 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">
-                                            Deskripsi
-                                        </th>
-                                        <th className="px-4 py-4 text-right text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">
-                                            Uang Masuk
-                                        </th>
-                                        <th className="px-4 py-4 text-right text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">
-                                            Uang Keluar
-                                        </th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                                    {rows.map((trx) => (
-                                        <tr
-                                            key={trx.id}
-                                            className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"
-                                        >
-                                            <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-400">
-                                                {trx.category}
-                                            </td>
-                                            <td className="px-4 py-4 text-sm font-semibold text-slate-900 dark:text-white">
-                                                {trx.description}
-                                            </td>
-                                            <td className="px-4 py-4 text-right text-sm font-semibold text-success-600 dark:text-success-400">
-                                                {formatCurrency(trx.cash_in ?? 0)}
-                                            </td>
-                                            <td className="px-4 py-4 text-right text-sm text-slate-500 dark:text-slate-400">
-                                                {formatCurrency(trx.cash_out ?? 0)}
-                                            </td>
+                    <div className="space-y-4">
+                        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden">
+                            <div className="overflow-x-auto">
+                                <table className="w-full">
+                                    <thead>
+                                        <tr className="border-b border-slate-100 dark:border-slate-800">
+                                            <th className="px-4 py-4 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">
+                                                Kategori
+                                            </th>
+                                            <th className="px-4 py-4 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">
+                                                Deskripsi
+                                            </th>
+                                            <th className="px-4 py-4 text-right text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">
+                                                Uang Masuk
+                                            </th>
+                                            <th className="px-4 py-4 text-right text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">
+                                                Uang Keluar
+                                            </th>
                                         </tr>
-                                    ))}
-                                </tbody>
-                            </table>
+                                    </thead>
+                                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                                        {rows.map((trx) => (
+                                            <tr
+                                                key={trx.id}
+                                                className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"
+                                            >
+                                                <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-400">
+                                                    {trx.category}
+                                                </td>
+                                                <td className="px-4 py-4 text-sm font-semibold text-slate-900 dark:text-white">
+                                                    {trx.description}
+                                                </td>
+                                                <td className="px-4 py-4 text-right text-sm font-semibold text-success-600 dark:text-success-400">
+                                                    {formatCurrency(
+                                                        trx.cash_in ?? 0
+                                                    )}
+                                                </td>
+                                                <td className="px-4 py-4 text-right text-sm text-slate-500 dark:text-slate-400">
+                                                    {formatCurrency(
+                                                        trx.cash_out ?? 0
+                                                    )}
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div className="flex justify-end">
+                            <Button
+                                type="button"
+                                label="Export Excel"
+                                icon={<IconFileSpreadsheet size={18} />}
+                                className="bg-success-500 hover:bg-success-600 text-white"
+                            />
                         </div>
                     </div>
                 ) : (
