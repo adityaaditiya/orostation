@@ -368,6 +368,9 @@ const Sales = ({ transactions, summary, filters, cashiers, customers }) => {
                                                 Item
                                             </th>
                                             <th className="px-4 py-4 text-right text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">
+                                                Diskon
+                                            </th>
+                                            <th className="px-4 py-4 text-right text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">
                                                 Total
                                             </th>
                                             {/* <th className="px-4 py-4 text-right text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">
@@ -421,6 +424,11 @@ const Sales = ({ transactions, summary, filters, cashiers, customers }) => {
                                                     <span className="px-2 py-0.5 text-xs font-medium bg-primary-100 dark:bg-primary-900/50 text-primary-700 dark:text-primary-400 rounded-full">
                                                         {trx.total_items ?? 0}
                                                     </span>
+                                                </td>
+                                                <td className="px-4 py-4 text-right text-sm font-semibold text-slate-900 dark:text-white">
+                                                    {formatCurrency(
+                                                        trx.discount ?? 0
+                                                    )}
                                                 </td>
                                                 <td className="px-4 py-4 text-right text-sm font-semibold text-slate-900 dark:text-white">
                                                     {formatCurrency(
