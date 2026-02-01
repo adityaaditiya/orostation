@@ -18,7 +18,7 @@ class UserSeeder extends Seeder
         $user = User::create([
             'name' => 'Aditya',
             'email' => 'aditya@gmail.com',
-            'password' => bcrypt('password'),
+            'password' => bcrypt('poskamplingpadel'),
         ]);
 
         // get admin role
@@ -36,7 +36,7 @@ class UserSeeder extends Seeder
         $cashier = User::create([
             'name' => 'cashier',
             'email' => 'cashier@gmail.com',
-            'password' => bcrypt('password'),
+            'password' => bcrypt('Orokasir123'),
         ]);
 
         $cashierRole = Role::where('name', 'cashier')->first();

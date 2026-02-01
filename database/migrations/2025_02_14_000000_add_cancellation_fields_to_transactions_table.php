@@ -11,7 +11,7 @@ return new class extends Migration {
     public function up()
     {
         Schema::table('transactions', function (Blueprint $table) {
-            $table->timestamp('canceled_at')->nullable()->after('payment_url');
+            $table->timestamp('canceled_at')->nullable();
             $table->text('cancellation_note')->nullable()->after('canceled_at');
             $table->string('canceled_by_email')->nullable()->after('cancellation_note');
         });
