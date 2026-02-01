@@ -101,7 +101,7 @@ class SalesReportController extends Controller
             $filters
         )->orderByDesc('created_at')->get();
 
-        $headers = ['No', 'Invoice', 'Produk', 'Tanggal', 'Pelanggan', 'Kasir', 'Item', 'Total'];
+        $headers = ['No', 'Invoice', 'Produk', 'Tanggal', 'Pelanggan', 'Kasir', 'Item', 'Diskon', 'Total'];
         $rows = $transactions->values()->map(function ($trx, $index) {
             $productNames = $trx->details
                 ->pluck('product.title')
@@ -117,6 +117,7 @@ class SalesReportController extends Controller
                 $trx->customer?->name ?? '-',
                 $trx->cashier?->name ?? '-',
                 (int) ($trx->total_items ?? 0),
+                $this->formatCurrency((int) ($trx->discount ?? 0)),
                 $this->formatCurrency((int) ($trx->grand_total ?? 0)),
             ];
         })->all();
