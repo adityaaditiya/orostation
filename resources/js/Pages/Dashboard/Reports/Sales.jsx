@@ -345,18 +345,21 @@ const Sales = ({ transactions, summary, filters, cashiers, customers }) => {
                             <div className="overflow-x-auto">
                                 <table className="w-full">
                                     <thead>
-                                        <tr className="border-b border-slate-100 dark:border-slate-800">
-                                            <th className="px-4 py-4 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">
-                                                No
-                                            </th>
-                                            <th className="px-4 py-4 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">
-                                                Invoice
-                                            </th>
-                                            <th className="px-4 py-4 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">
-                                                Tanggal
-                                            </th>
-                                            <th className="px-4 py-4 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">
-                                                Pelanggan
+                                    <tr className="border-b border-slate-100 dark:border-slate-800">
+                                        <th className="px-4 py-4 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">
+                                            No
+                                        </th>
+                                        <th className="px-4 py-4 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">
+                                            Invoice
+                                        </th>
+                                        <th className="px-4 py-4 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">
+                                            Produk
+                                        </th>
+                                        <th className="px-4 py-4 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">
+                                            Tanggal
+                                        </th>
+                                        <th className="px-4 py-4 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">
+                                            Pelanggan
                                             </th>
                                             <th className="px-4 py-4 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">
                                                 Kasir
@@ -384,12 +387,30 @@ const Sales = ({ transactions, summary, filters, cashiers, customers }) => {
                                                         (currentPage - 1) *
                                                             perPage}
                                                 </td>
-                                                <td className="px-4 py-4 text-sm font-semibold text-slate-900 dark:text-white">
-                                                    {trx.invoice}
-                                                </td>
-                                                <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-400">
-                                                    {trx.created_at}
-                                                </td>
+                                            <td className="px-4 py-4 text-sm font-semibold text-slate-900 dark:text-white">
+                                                {trx.invoice}
+                                            </td>
+                                            <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-400">
+                                                {trx.details?.length
+                                                    ? [
+                                                          ...new Set(
+                                                              trx.details
+                                                                  .map(
+                                                                      (detail) =>
+                                                                          detail
+                                                                              ?.product
+                                                                              ?.name
+                                                                  )
+                                                                  .filter(
+                                                                      Boolean
+                                                                  )
+                                                          ),
+                                                      ].join(", ")
+                                                    : "-"}
+                                            </td>
+                                            <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-400">
+                                                {trx.created_at}
+                                            </td>
                                                 <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-400">
                                                     {trx.customer?.name ?? "-"}
                                                 </td>

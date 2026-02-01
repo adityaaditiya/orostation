@@ -30,7 +30,7 @@ class SalesReportController extends Controller
 
         $baseListQuery = $this->applyFilters(
             Transaction::query()->notCanceled()
-                ->with(['cashier:id,name', 'customer:id,name'])
+                ->with(['cashier:id,name', 'customer:id,name', 'details.product:id,name'])
                 ->withSum('details as total_items', 'qty')
                 ->withSum('profits as total_profit', 'total'),
             $filters
@@ -96,20 +96,25 @@ class SalesReportController extends Controller
 
         $transactions = $this->applyFilters(
             Transaction::query()->notCanceled()
-                ->with(['cashier:id,name', 'customer:id,name'])
+                ->with(['cashier:id,name', 'customer:id,name', 'details.product:id,name'])
                 ->withSum('details as total_items', 'qty'),
             $filters
         )->orderByDesc('created_at')->get();
 
-        $headers = ['No', 'Invoice', 'Tanggal', 'Pelanggan', 'Kasir', 'Item', 'Total'];
+        $headers = ['No', 'Invoice', 'Produk', 'Tanggal', 'Pelanggan', 'Kasir', 'Item', 'Total'];
         $rows = $transactions->values()->map(function ($trx, $index) {
+            $productNames = $trx->details
+                ->pluck('product.name')
+                ->filter()
+                ->unique()
+                ->implode(', ');
+
             return [
                 $index + 1,
                 $trx->invoice,
-                $trx->created_at
-                    ? Carbon::parse($trx->created_at)->format('Y-m-d H:i')
-                    : '-',
-                    $trx->customer?->name ?? '-',
+                $productNames ?: '-',
+                $trx->created_at?->format('Y-m-d H:i') ?? '-',
+                $trx->customer?->name ?? '-',
                 $trx->cashier?->name ?? '-',
                 (int) ($trx->total_items ?? 0),
                 $this->formatCurrency((int) ($trx->grand_total ?? 0)),
