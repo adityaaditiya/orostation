@@ -100,6 +100,69 @@ class CashReportController extends Controller
     }
 
     /**
+     * Export cash flow report to Excel.
+     */
+    public function export(Request $request)
+    {
+        $defaultDate = Carbon::today()->toDateString();
+        $filters = [
+            'start_date' => $request->input('start_date') ?: $defaultDate,
+            'end_date' => $request->input('end_date') ?: $defaultDate,
+            'invoice' => $request->input('invoice'),
+            'cashier_id' => $request->input('cashier_id'),
+            'customer_id' => $request->input('customer_id'),
+        ];
+
+        $transactionQuery = $this->applyFilters(
+            Transaction::query()->notCanceled()
+                ->with(['cashier:id,name', 'customer:id,name']),
+            $filters
+        )->orderByDesc('created_at');
+
+        $cashEntryQuery = $this->applyCashEntryFilters(
+            CashEntry::query()->with(['cashier:id,name']),
+            $filters
+        )->orderByDesc('created_at');
+
+        $transactionsList = (clone $transactionQuery)
+            ->get()
+            ->map(fn ($trx) => [
+                'category' => 'Transaksi Penjualan',
+                'description' => $trx->invoice,
+                'cash_in' => (int) $trx->grand_total,
+                'cash_out' => 0,
+                'created_at' => $trx->created_at,
+            ]);
+
+        $cashEntryList = (clone $cashEntryQuery)
+            ->get()
+            ->map(fn ($entry) => [
+                'category' => $entry->category === 'in' ? 'Uang Masuk' : 'Uang Keluar',
+                'description' => $entry->description,
+                'cash_in' => $entry->category === 'in' ? (int) $entry->amount : 0,
+                'cash_out' => $entry->category === 'out' ? (int) $entry->amount : 0,
+                'created_at' => $entry->created_at,
+            ]);
+
+        $mergedRows = $transactionsList
+            ->concat($cashEntryList)
+            ->sortByDesc('created_at')
+            ->values();
+
+        $headers = ['Kategori', 'Deskripsi', 'Uang Masuk', 'Uang Keluar'];
+        $rows = $mergedRows->map(function ($row) {
+            return [
+                $row['category'],
+                $row['description'],
+                $this->formatCurrency((int) ($row['cash_in'] ?? 0)),
+                $this->formatCurrency((int) ($row['cash_out'] ?? 0)),
+            ];
+        })->all();
+
+        return $this->downloadExcel('laporan-keuangan-cash.xls', $headers, $rows);
+    }
+
+    /**
      * Apply table filters.
      */
     protected function applyFilters($query, array $filters)
@@ -140,6 +203,32 @@ class CashReportController extends Controller
         return new LengthAwarePaginator($pageItems, $rows->count(), $perPage, $currentPage, [
             'path' => LengthAwarePaginator::resolveCurrentPath(),
             'query' => $request->query(),
+        ]);
+    }
+
+    protected function formatCurrency(int $value): string
+    {
+        return 'Rp ' . number_format($value, 0, ',', '.');
+    }
+
+    protected function downloadExcel(string $filename, array $headers, array $rows)
+    {
+        return response()->streamDownload(function () use ($headers, $rows) {
+            echo '<table border="1"><thead><tr>';
+            foreach ($headers as $header) {
+                echo '<th>' . e($header) . '</th>';
+            }
+            echo '</tr></thead><tbody>';
+            foreach ($rows as $row) {
+                echo '<tr>';
+                foreach ($row as $cell) {
+                    echo '<td>' . e((string) $cell) . '</td>';
+                }
+                echo '</tr>';
+            }
+            echo '</tbody></table>';
+        }, $filename, [
+            'Content-Type' => 'application/vnd.ms-excel; charset=UTF-8',
         ]);
     }
 }

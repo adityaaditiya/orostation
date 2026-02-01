@@ -166,6 +166,10 @@ const Sales = ({ transactions, summary, filters, cashiers, customers }) => {
         average_order: summary?.average_order ?? 0,
     };
 
+    const handleExport = () => {
+        window.location.href = route("reports.sales.export", filterData);
+    };
+
     const summaryCards = [
         {
             title: "Pendapatan Bersih",
@@ -419,6 +423,7 @@ const Sales = ({ transactions, summary, filters, cashiers, customers }) => {
                                 label="Export Excel"
                                 icon={<IconFileSpreadsheet size={18} />}
                                 className="bg-success-500 hover:bg-success-600 text-white"
+                                onClick={handleExport}
                             />
                         </div>
                     </div>

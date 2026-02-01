@@ -178,6 +178,10 @@ const Cash = ({ transactions, summary, filters, cashiers, customers }) => {
         },
     ];
 
+    const handleExport = () => {
+        window.location.href = route("reports.cash.export", filterData);
+    };
+
     return (
         <>
             <Head title="Laporan Keuangan Cash" />
@@ -365,6 +369,7 @@ const Cash = ({ transactions, summary, filters, cashiers, customers }) => {
                                 label="Export Excel"
                                 icon={<IconFileSpreadsheet size={18} />}
                                 className="bg-success-500 hover:bg-success-600 text-white"
+                                onClick={handleExport}
                             />
                         </div>
                     </div>
