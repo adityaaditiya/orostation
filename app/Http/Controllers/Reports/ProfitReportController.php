@@ -73,6 +73,45 @@ class ProfitReportController extends Controller
         ]);
     }
 
+    /**
+     * Export profit report to Excel.
+     */
+    public function export(Request $request)
+    {
+        $defaultDate = Carbon::today()->toDateString();
+        $filters = [
+            'start_date' => $request->input('start_date') ?: $defaultDate,
+            'end_date' => $request->input('end_date') ?: $defaultDate,
+            'invoice' => $request->input('invoice'),
+            'cashier_id' => $request->input('cashier_id'),
+            'customer_id' => $request->input('customer_id'),
+        ];
+
+        $transactions = $this->applyFilters(
+            Transaction::query()->notCanceled()
+                ->with(['cashier:id,name', 'customer:id,name'])
+                ->withSum('profits as total_profit', 'total')
+                ->withSum('details as total_items', 'qty'),
+            $filters
+        )->orderByDesc('created_at')->get();
+
+        $headers = ['No', 'Invoice', 'Tanggal', 'Kasir', 'Pelanggan', 'Item', 'Penjualan', 'Profit'];
+        $rows = $transactions->values()->map(function ($trx, $index) {
+            return [
+                $index + 1,
+                $trx->invoice,
+                $trx->created_at?->format('Y-m-d H:i') ?? '-',
+                $trx->cashier?->name ?? '-',
+                $trx->customer?->name ?? '-',
+                (int) ($trx->total_items ?? 0),
+                $this->formatCurrency((int) ($trx->grand_total ?? 0)),
+                $this->formatCurrency((int) ($trx->total_profit ?? 0)),
+            ];
+        })->all();
+
+        return $this->downloadExcel('laporan-keuntungan.xls', $headers, $rows);
+    }
+
     protected function applyFilters($query, array $filters)
     {
         return $query
@@ -81,5 +120,31 @@ class ProfitReportController extends Controller
             ->when($filters['customer_id'] ?? null, fn ($q, $customer) => $q->where('customer_id', $customer))
             ->when($filters['start_date'] ?? null, fn ($q, $start) => $q->whereDate('created_at', '>=', $start))
             ->when($filters['end_date'] ?? null, fn ($q, $end) => $q->whereDate('created_at', '<=', $end));
+    }
+
+    protected function formatCurrency(int $value): string
+    {
+        return 'Rp ' . number_format($value, 0, ',', '.');
+    }
+
+    protected function downloadExcel(string $filename, array $headers, array $rows)
+    {
+        return response()->streamDownload(function () use ($headers, $rows) {
+            echo '<table border="1"><thead><tr>';
+            foreach ($headers as $header) {
+                echo '<th>' . e($header) . '</th>';
+            }
+            echo '</tr></thead><tbody>';
+            foreach ($rows as $row) {
+                echo '<tr>';
+                foreach ($row as $cell) {
+                    echo '<td>' . e((string) $cell) . '</td>';
+                }
+                echo '</tr>';
+            }
+            echo '</tbody></table>';
+        }, $filename, [
+            'Content-Type' => 'application/vnd.ms-excel; charset=UTF-8',
+        ]);
     }
 }
