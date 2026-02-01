@@ -339,9 +339,7 @@ export default function Print({ transaction }) {
                                     {paymentMethodKey === "cash" && (
                                         <>
                                             <div className="flex justify-between text-slate-600 dark:text-slate-400 pt-2">
-                                                <span>
-                                                    {paymentMethodLabel}
-                                                </span>
+                                                <span>Tunai</span>
                                                 <span>
                                                     {formatPrice(
                                                         transaction.cash
