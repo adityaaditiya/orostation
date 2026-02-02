@@ -13,6 +13,8 @@ class PaymentSetting extends Model
     public const GATEWAY_XENDIT = 'xendit';
     public const GATEWAY_QRIS = 'qris';
     public const GATEWAY_BANK_TRANSFER = 'bank_transfer';
+    public const GATEWAY_AYO = 'ayo';
+    public const GATEWAY_CREDIT_CARD = 'credit_card';
 
     protected $fillable = [
         'default_gateway',
@@ -26,6 +28,8 @@ class PaymentSetting extends Model
         'xendit_production',
         'qris_enabled',
         'bank_transfer_enabled',
+        'ayo_enabled',
+        'credit_card_enabled',
     ];
 
     protected $casts = [
@@ -35,6 +39,8 @@ class PaymentSetting extends Model
         'xendit_production' => 'boolean',
         'qris_enabled' => 'boolean',
         'bank_transfer_enabled' => 'boolean',
+        'ayo_enabled' => 'boolean',
+        'credit_card_enabled' => 'boolean',
     ];
 
     public function enabledGateways(): array
@@ -54,6 +60,22 @@ class PaymentSetting extends Model
                 'value' => self::GATEWAY_BANK_TRANSFER,
                 'label' => 'Transfer Bank',
                 'description' => 'Pembayaran transfer bank yang dicatat manual.',
+            ];
+        }
+
+        if ($this->isGatewayReady(self::GATEWAY_AYO)) {
+            $gateways[] = [
+                'value' => self::GATEWAY_AYO,
+                'label' => 'AYO',
+                'description' => 'Pembayaran AYO yang dikonfirmasi manual.',
+            ];
+        }
+
+        if ($this->isGatewayReady(self::GATEWAY_CREDIT_CARD)) {
+            $gateways[] = [
+                'value' => self::GATEWAY_CREDIT_CARD,
+                'label' => 'Credit Card',
+                'description' => 'Pembayaran kartu kredit yang dicatat manual.',
             ];
         }
 
@@ -87,6 +109,8 @@ class PaymentSetting extends Model
                 && filled($this->xendit_public_key),
             self::GATEWAY_QRIS => $this->qris_enabled,
             self::GATEWAY_BANK_TRANSFER => $this->bank_transfer_enabled,
+            self::GATEWAY_AYO => $this->ayo_enabled,
+            self::GATEWAY_CREDIT_CARD => $this->credit_card_enabled,
             default => false,
         };
     }

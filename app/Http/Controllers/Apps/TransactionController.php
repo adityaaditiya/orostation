@@ -428,13 +428,23 @@ class TransactionController extends Controller
             $paymentGateway = strtolower($paymentGateway);
         }
 
-        if (in_array($paymentGateway, ['non-cash', PaymentSetting::GATEWAY_QRIS, PaymentSetting::GATEWAY_BANK_TRANSFER], true)) {
+        if (in_array($paymentGateway, [
+            PaymentSetting::GATEWAY_QRIS,
+            PaymentSetting::GATEWAY_BANK_TRANSFER,
+            PaymentSetting::GATEWAY_AYO,
+            PaymentSetting::GATEWAY_CREDIT_CARD,
+        ], true)) {
             $manualPaymentMethod = $paymentGateway;
             $paymentGateway = null;
         }
         $paymentSetting = null;
 
-        if ($paymentGateway || in_array($manualPaymentMethod, [PaymentSetting::GATEWAY_QRIS, PaymentSetting::GATEWAY_BANK_TRANSFER], true)) {
+        if ($paymentGateway || in_array($manualPaymentMethod, [
+            PaymentSetting::GATEWAY_QRIS,
+            PaymentSetting::GATEWAY_BANK_TRANSFER,
+            PaymentSetting::GATEWAY_AYO,
+            PaymentSetting::GATEWAY_CREDIT_CARD,
+        ], true)) {
             $paymentSetting = PaymentSetting::first();
 
             $selectedGateway = $paymentGateway ?? $manualPaymentMethod;

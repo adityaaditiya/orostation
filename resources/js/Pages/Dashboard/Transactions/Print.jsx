@@ -36,6 +36,8 @@ export default function Print({ transaction }) {
         cash: "Tunai",
         qris: "QRIS",
         bank_transfer: "Transfer Bank",
+        ayo: "AYO",
+        credit_card: "Credit Card",
         midtrans: "Midtrans",
         xendit: "Xendit",
     };

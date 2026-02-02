@@ -16,6 +16,8 @@ class PaymentSettingSeeder extends Seeder
             'default_gateway' => 'cash',
             'qris_enabled' => false,
             'bank_transfer_enabled' => false,
+            'ayo_enabled' => false,
+            'credit_card_enabled' => false,
             'midtrans_enabled' => false,
             'xendit_enabled' => false,
         ]);

@@ -20,6 +20,8 @@ class PaymentSettingFactory extends Factory
             'default_gateway' => 'cash',
             'qris_enabled' => false,
             'bank_transfer_enabled' => false,
+            'ayo_enabled' => false,
+            'credit_card_enabled' => false,
             'midtrans_enabled' => false,
             'midtrans_server_key' => null,
             'midtrans_client_key' => null,

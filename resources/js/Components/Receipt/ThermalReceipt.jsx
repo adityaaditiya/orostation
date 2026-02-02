@@ -43,6 +43,8 @@ export default function ThermalReceipt({
         cash: "TUNAI",
         qris: "QRIS",
         bank_transfer: "TRANSFER BANK",
+        ayo: "AYO",
+        credit_card: "CREDIT CARD",
         midtrans: "MIDTRANS",
         xendit: "XENDIT",
     };
