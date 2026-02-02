@@ -20,6 +20,8 @@ class PaymentSettingController extends Controller
             'setting' => $setting,
             'supportedGateways' => [
                 ['value' => 'cash', 'label' => 'Tunai'],
+                ['value' => PaymentSetting::GATEWAY_QRIS, 'label' => 'QRIS'],
+                ['value' => PaymentSetting::GATEWAY_BANK_TRANSFER, 'label' => 'Transfer Bank'],
                 ['value' => PaymentSetting::GATEWAY_MIDTRANS, 'label' => 'Midtrans'],
                 ['value' => PaymentSetting::GATEWAY_XENDIT, 'label' => 'Xendit'],
             ],
@@ -35,8 +37,16 @@ class PaymentSettingController extends Controller
         $data = $request->validate([
             'default_gateway' => [
                 'required',
-                Rule::in(['cash', PaymentSetting::GATEWAY_MIDTRANS, PaymentSetting::GATEWAY_XENDIT]),
+                Rule::in([
+                    'cash',
+                    PaymentSetting::GATEWAY_QRIS,
+                    PaymentSetting::GATEWAY_BANK_TRANSFER,
+                    PaymentSetting::GATEWAY_MIDTRANS,
+                    PaymentSetting::GATEWAY_XENDIT,
+                ]),
             ],
+            'qris_enabled' => ['boolean'],
+            'bank_transfer_enabled' => ['boolean'],
             'midtrans_enabled' => ['boolean'],
             'midtrans_server_key' => ['nullable', 'string'],
             'midtrans_client_key' => ['nullable', 'string'],
@@ -49,6 +59,8 @@ class PaymentSettingController extends Controller
 
         $midtransEnabled = (bool) ($data['midtrans_enabled'] ?? false);
         $xenditEnabled = (bool) ($data['xendit_enabled'] ?? false);
+        $qrisEnabled = (bool) ($data['qris_enabled'] ?? false);
+        $bankTransferEnabled = (bool) ($data['bank_transfer_enabled'] ?? false);
 
         if ($midtransEnabled && (empty($data['midtrans_server_key']) || empty($data['midtrans_client_key']))) {
             return back()->withErrors([
@@ -65,7 +77,9 @@ class PaymentSettingController extends Controller
         if (
             $data['default_gateway'] !== 'cash'
             && !(($data['default_gateway'] === PaymentSetting::GATEWAY_MIDTRANS && $midtransEnabled)
-                || ($data['default_gateway'] === PaymentSetting::GATEWAY_XENDIT && $xenditEnabled))
+                || ($data['default_gateway'] === PaymentSetting::GATEWAY_XENDIT && $xenditEnabled)
+                || ($data['default_gateway'] === PaymentSetting::GATEWAY_QRIS && $qrisEnabled)
+                || ($data['default_gateway'] === PaymentSetting::GATEWAY_BANK_TRANSFER && $bankTransferEnabled))
         ) {
             return back()->withErrors([
                 'default_gateway' => 'Gateway default harus dalam kondisi aktif.',
@@ -74,6 +88,8 @@ class PaymentSettingController extends Controller
 
         $setting->update([
             'default_gateway' => $data['default_gateway'],
+            'qris_enabled' => $qrisEnabled,
+            'bank_transfer_enabled' => $bankTransferEnabled,
             'midtrans_enabled' => $midtransEnabled,
             'midtrans_server_key' => $data['midtrans_server_key'],
             'midtrans_client_key' => $data['midtrans_client_key'],

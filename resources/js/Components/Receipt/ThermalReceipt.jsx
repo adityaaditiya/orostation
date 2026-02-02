@@ -41,6 +41,8 @@ export default function ThermalReceipt({
 
     const paymentLabels = {
         cash: "TUNAI",
+        qris: "QRIS",
+        bank_transfer: "TRANSFER BANK",
         midtrans: "MIDTRANS",
         xendit: "XENDIT",
     };

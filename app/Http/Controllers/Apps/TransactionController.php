@@ -423,21 +423,23 @@ class TransactionController extends Controller
     public function store(Request $request, PaymentGatewayManager $paymentGatewayManager)
     {
         $paymentGateway = $request->input('payment_gateway');
-        $isManualNonCash = false;
+        $manualPaymentMethod = null;
         if ($paymentGateway) {
             $paymentGateway = strtolower($paymentGateway);
         }
 
-        if ($paymentGateway === 'non-cash') {
-            $paymentGateway  = null;
-            $isManualNonCash = true;
+        if (in_array($paymentGateway, ['non-cash', PaymentSetting::GATEWAY_QRIS, PaymentSetting::GATEWAY_BANK_TRANSFER], true)) {
+            $manualPaymentMethod = $paymentGateway;
+            $paymentGateway = null;
         }
         $paymentSetting = null;
 
-        if ($paymentGateway) {
+        if ($paymentGateway || in_array($manualPaymentMethod, [PaymentSetting::GATEWAY_QRIS, PaymentSetting::GATEWAY_BANK_TRANSFER], true)) {
             $paymentSetting = PaymentSetting::first();
 
-            if (! $paymentSetting || ! $paymentSetting->isGatewayReady($paymentGateway)) {
+            $selectedGateway = $paymentGateway ?? $manualPaymentMethod;
+
+            if (! $paymentSetting || ! $paymentSetting->isGatewayReady($selectedGateway)) {
                 return redirect()
                     ->route('transactions.index')
                     ->with('error', 'Gateway pembayaran belum dikonfigurasi.');
@@ -451,7 +453,7 @@ class TransactionController extends Controller
         }
 
         $invoice       = 'TRX-' . Str::upper($random);
-        $isCashPayment = empty($paymentGateway) && ! $isManualNonCash;
+        $isCashPayment = empty($paymentGateway) && ! $manualPaymentMethod;
         $cashAmount    = $isCashPayment ? $request->cash : $request->grand_total;
         $changeAmount  = $isCashPayment ? $request->change : 0;
 
@@ -462,7 +464,7 @@ class TransactionController extends Controller
             $changeAmount,
             $paymentGateway,
             $isCashPayment,
-            $isManualNonCash
+            $manualPaymentMethod
         ) {
             $transaction = Transaction::create([
                 'cashier_id'     => auth()->user()->id,
@@ -472,8 +474,8 @@ class TransactionController extends Controller
                 'change'         => $changeAmount,
                 'discount'       => $request->discount,
                 'grand_total'    => $request->grand_total,
-                'payment_method' => $paymentGateway ?: ($isManualNonCash ? 'non-cash' : 'cash'),
-                'payment_status' => ($isCashPayment || $isManualNonCash) ? 'paid' : 'pending',
+                'payment_method' => $manualPaymentMethod ?: ($paymentGateway ?: 'cash'),
+                'payment_status' => ($isCashPayment || $manualPaymentMethod) ? 'paid' : 'pending',
             ]);
 
             $carts = Cart::where('cashier_id', auth()->user()->id)->get();

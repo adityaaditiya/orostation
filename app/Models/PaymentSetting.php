@@ -11,6 +11,8 @@ class PaymentSetting extends Model
 
     public const GATEWAY_MIDTRANS = 'midtrans';
     public const GATEWAY_XENDIT = 'xendit';
+    public const GATEWAY_QRIS = 'qris';
+    public const GATEWAY_BANK_TRANSFER = 'bank_transfer';
 
     protected $fillable = [
         'default_gateway',
@@ -22,6 +24,8 @@ class PaymentSetting extends Model
         'xendit_secret_key',
         'xendit_public_key',
         'xendit_production',
+        'qris_enabled',
+        'bank_transfer_enabled',
     ];
 
     protected $casts = [
@@ -29,11 +33,29 @@ class PaymentSetting extends Model
         'midtrans_production' => 'boolean',
         'xendit_enabled' => 'boolean',
         'xendit_production' => 'boolean',
+        'qris_enabled' => 'boolean',
+        'bank_transfer_enabled' => 'boolean',
     ];
 
     public function enabledGateways(): array
     {
         $gateways = [];
+
+        if ($this->isGatewayReady(self::GATEWAY_QRIS)) {
+            $gateways[] = [
+                'value' => self::GATEWAY_QRIS,
+                'label' => 'QRIS',
+                'description' => 'Pembayaran QRIS yang dikonfirmasi manual oleh kasir.',
+            ];
+        }
+
+        if ($this->isGatewayReady(self::GATEWAY_BANK_TRANSFER)) {
+            $gateways[] = [
+                'value' => self::GATEWAY_BANK_TRANSFER,
+                'label' => 'Transfer Bank',
+                'description' => 'Pembayaran transfer bank yang dicatat manual.',
+            ];
+        }
 
         if ($this->isGatewayReady(self::GATEWAY_MIDTRANS)) {
             $gateways[] = [
@@ -63,6 +85,8 @@ class PaymentSetting extends Model
             self::GATEWAY_XENDIT => $this->xendit_enabled
                 && filled($this->xendit_secret_key)
                 && filled($this->xendit_public_key),
+            self::GATEWAY_QRIS => $this->qris_enabled,
+            self::GATEWAY_BANK_TRANSFER => $this->bank_transfer_enabled,
             default => false,
         };
     }
