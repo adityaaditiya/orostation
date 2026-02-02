@@ -16,6 +16,8 @@ export default function Payment({ setting, supportedGateways = [] }) {
 
     const { data, setData, put, errors, processing } = useForm({
         default_gateway: setting?.default_gateway ?? "cash",
+        qris_enabled: setting?.qris_enabled ?? false,
+        bank_transfer_enabled: setting?.bank_transfer_enabled ?? false,
         midtrans_enabled: setting?.midtrans_enabled ?? false,
         midtrans_server_key: setting?.midtrans_server_key ?? "",
         midtrans_client_key: setting?.midtrans_client_key ?? "",
@@ -38,6 +40,8 @@ export default function Payment({ setting, supportedGateways = [] }) {
 
     const isGatewaySelectable = (gateway) => {
         if (gateway === "cash") return true;
+        if (gateway === "qris") return data.qris_enabled;
+        if (gateway === "bank_transfer") return data.bank_transfer_enabled;
         if (gateway === "midtrans") return data.midtrans_enabled;
         if (gateway === "xendit") return data.xendit_enabled;
         return false;
@@ -96,6 +100,79 @@ export default function Payment({ setting, supportedGateways = [] }) {
                                 {errors.default_gateway}
                             </small>
                         )}
+                    </div>
+                </div>
+
+                {/* Manual Payment Methods */}
+                <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 space-y-4">
+                    <div className="flex items-center gap-2 text-sm font-semibold text-slate-700 dark:text-slate-300">
+                        <IconCreditCard size={18} />
+                        Metode Pembayaran Manual
+                    </div>
+                    <p className="text-sm text-slate-500 dark:text-slate-400">
+                        Aktifkan metode manual yang tersedia pada menu
+                        transaksi.
+                    </p>
+                    <div className="grid gap-4 md:grid-cols-2">
+                        <div className="flex items-center justify-between rounded-xl border border-slate-200 dark:border-slate-700 px-4 py-3">
+                            <div>
+                                <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">
+                                    QRIS
+                                </p>
+                                <p className="text-xs text-slate-500 dark:text-slate-400">
+                                    Pembayaran QRIS dengan konfirmasi manual.
+                                </p>
+                            </div>
+                            <label
+                                className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium cursor-pointer transition-all ${
+                                    data.qris_enabled
+                                        ? "bg-success-100 dark:bg-success-900/50 text-success-700 dark:text-success-400"
+                                        : "bg-slate-100 dark:bg-slate-800 text-slate-500"
+                                }`}
+                            >
+                                <Checkbox
+                                    checked={data.qris_enabled}
+                                    onChange={(e) =>
+                                        setData(
+                                            "qris_enabled",
+                                            e.target.checked
+                                        )
+                                    }
+                                />
+                                {data.qris_enabled ? "Aktif" : "Nonaktif"}
+                            </label>
+                        </div>
+                        <div className="flex items-center justify-between rounded-xl border border-slate-200 dark:border-slate-700 px-4 py-3">
+                            <div>
+                                <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">
+                                    Transfer Bank
+                                </p>
+                                <p className="text-xs text-slate-500 dark:text-slate-400">
+                                    Pembayaran transfer bank yang dicatat
+                                    manual.
+                                </p>
+                            </div>
+                            <label
+                                className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium cursor-pointer transition-all ${
+                                    data.bank_transfer_enabled
+                                        ? "bg-success-100 dark:bg-success-900/50 text-success-700 dark:text-success-400"
+                                        : "bg-slate-100 dark:bg-slate-800 text-slate-500"
+                                }`}
+                            >
+                                <Checkbox
+                                    checked={data.bank_transfer_enabled}
+                                    onChange={(e) =>
+                                        setData(
+                                            "bank_transfer_enabled",
+                                            e.target.checked
+                                        )
+                                    }
+                                />
+                                {data.bank_transfer_enabled
+                                    ? "Aktif"
+                                    : "Nonaktif"}
+                            </label>
+                        </div>
                     </div>
                 </div>
 
