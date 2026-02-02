@@ -34,6 +34,10 @@ export default function Print({ transaction }) {
 
     const paymentLabels = {
         cash: "Tunai",
+        qris: "QRIS",
+        bank_transfer: "Transfer Bank",
+        ayo: "AYO",
+        credit_card: "Credit Card",
         midtrans: "Midtrans",
         xendit: "Xendit",
     };

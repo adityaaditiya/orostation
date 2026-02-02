@@ -135,11 +135,6 @@ export default function Index({
                 label: "Tunai",
                 description: "Pembayaran tunai langsung di kasir.",
             },
-            {
-                value: "non-cash",
-                label: "Non Tunai",
-                description: "Pembayaran non tunai tanpa gateway.",
-            },
             ...options,
         ];
     }, [paymentGateways]);
