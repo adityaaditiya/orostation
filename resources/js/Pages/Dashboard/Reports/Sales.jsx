@@ -350,14 +350,15 @@ const Sales = ({ transactions, summary, filters, cashiers, customers }) => {
                                             No
                                         </th>
                                         <th className="px-4 py-4 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">
+                                            Tanggal
+                                        </th>
+                                        <th className="px-4 py-4 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">
                                             Invoice
                                         </th>
                                         <th className="px-4 py-4 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">
                                             Produk
                                         </th>
-                                        <th className="px-4 py-4 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">
-                                            Tanggal
-                                        </th>
+                                    
                                         <th className="px-4 py-4 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">
                                             Pelanggan
                                             </th>
@@ -390,6 +391,9 @@ const Sales = ({ transactions, summary, filters, cashiers, customers }) => {
                                                         (currentPage - 1) *
                                                             perPage}
                                                 </td>
+                                            <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-400">
+                                                {trx.created_at}
+                                            </td>
                                             <td className="px-4 py-4 text-sm font-semibold text-slate-900 dark:text-white">
                                                 {trx.invoice}
                                             </td>
@@ -411,9 +415,7 @@ const Sales = ({ transactions, summary, filters, cashiers, customers }) => {
                                                       ].join(", ")
                                                     : "-"}
                                             </td>
-                                            <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-400">
-                                                {trx.created_at}
-                                            </td>
+                                            
                                                 <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-400">
                                                     {trx.customer?.name ?? "-"}
                                                 </td>

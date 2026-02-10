@@ -318,10 +318,10 @@ const ProfitReport = ({
                                                 No
                                             </th>
                                             <th className="px-4 py-4 text-left text-xs font-semibold text-slate-500 uppercase">
-                                                Invoice
+                                                Tanggal
                                             </th>
                                             <th className="px-4 py-4 text-left text-xs font-semibold text-slate-500 uppercase">
-                                                Tanggal
+                                                Invoice
                                             </th>
                                             <th className="px-4 py-4 text-left text-xs font-semibold text-slate-500 uppercase">
                                                 Kasir
@@ -352,12 +352,13 @@ const ProfitReport = ({
                                                         (currentPage - 1) *
                                                             perPage}
                                                 </td>
-                                                <td className="px-4 py-4 text-sm font-semibold text-slate-900 dark:text-white">
-                                                    {trx.invoice}
-                                                </td>
                                                 <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-400">
                                                     {trx.created_at}
                                                 </td>
+                                                <td className="px-4 py-4 text-sm font-semibold text-slate-900 dark:text-white">
+                                                    {trx.invoice}
+                                                </td>
+                                                
                                                 <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-400">
                                                     {trx.cashier?.name ?? "-"}
                                                 </td>
