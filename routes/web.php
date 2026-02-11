@@ -13,6 +13,7 @@ use App\Http\Controllers\Reports\ProfitReportController;
 use App\Http\Controllers\Reports\AuthorizationReportController;
 use App\Http\Controllers\Reports\CashReportController;
 use App\Http\Controllers\Reports\SalesReportController;
+use App\Http\Controllers\Reports\SoldItemsReportController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
@@ -97,6 +98,7 @@ Route::group(['prefix' => 'dashboard', 'middleware' => ['auth']], function () {
     //reports
     Route::get('/reports/sales', [SalesReportController::class, 'index'])->middleware('permission:reports-access')->name('reports.sales.index');
     Route::get('/reports/sales/export', [SalesReportController::class, 'export'])->middleware('permission:reports-access')->name('reports.sales.export');
+    Route::get('/reports/sold-items', [SoldItemsReportController::class, 'index'])->middleware('permission:reports-access')->name('reports.sold-items.index');
     Route::get('/reports/profits', [ProfitReportController::class, 'index'])->middleware('permission:profits-access')->name('reports.profits.index');
     Route::get('/reports/profits/export', [ProfitReportController::class, 'export'])->middleware('permission:profits-access')->name('reports.profits.export');
     Route::get('/reports/cash', [CashReportController::class, 'index'])->middleware('permission:reports-access')->name('reports.cash.index');
