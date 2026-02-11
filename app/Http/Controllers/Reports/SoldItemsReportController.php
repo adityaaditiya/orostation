@@ -63,6 +63,49 @@ class SoldItemsReportController extends Controller
         ]);
     }
 
+    /**
+     * Export sold items report to Excel.
+     */
+    public function export(Request $request)
+    {
+        $defaultDate = Carbon::today()->toDateString();
+        $filters = [
+            'start_date' => $request->input('start_date') ?: $defaultDate,
+            'end_date' => $request->input('end_date') ?: $defaultDate,
+            'invoice' => $request->input('invoice'),
+            'cashier_id' => $request->input('cashier_id'),
+            'customer_id' => $request->input('customer_id'),
+        ];
+
+        $soldItems = $this->applyFilters(
+            TransactionDetail::query()
+                ->with([
+                    'product:id,title',
+                    'transaction:id,invoice,created_at,cashier_id,customer_id',
+                    'transaction.cashier:id,name',
+                    'transaction.customer:id,name',
+                ])
+                ->whereHas('transaction', fn ($query) => $query->notCanceled()),
+            $filters
+        )->orderByDesc('id')->get();
+
+        $headers = ['No', 'Tanggal', 'Invoice', 'Produk Terjual', 'Terjual', 'Pelanggan', 'Kasir'];
+        $rows = $soldItems->values()->map(function ($item, $index) {
+            return [
+                $index + 1,
+                $item->transaction?->created_at
+                    ? Carbon::parse($item->transaction->created_at)->format('Y-m-d H:i') : '-',
+                $item->transaction?->invoice ?? '-',
+                $item->product?->title ?? '-',
+                (int) ($item->qty ?? 0),
+                $item->transaction?->customer?->name ?? '-',
+                $item->transaction?->cashier?->name ?? '-',
+            ];
+        })->all();
+
+        return $this->downloadExcel('laporan-barang-terjual.xls', $headers, $rows);
+    }
+
     protected function applyFilters($query, array $filters)
     {
         return $query
@@ -71,5 +114,26 @@ class SoldItemsReportController extends Controller
             ->when($filters['customer_id'] ?? null, fn ($q, $customer) => $q->whereHas('transaction', fn ($trx) => $trx->where('customer_id', $customer)))
             ->when($filters['start_date'] ?? null, fn ($q, $start) => $q->whereHas('transaction', fn ($trx) => $trx->whereDate('created_at', '>=', $start)))
             ->when($filters['end_date'] ?? null, fn ($q, $end) => $q->whereHas('transaction', fn ($trx) => $trx->whereDate('created_at', '<=', $end)));
+    }
+
+    protected function downloadExcel(string $filename, array $headers, array $rows)
+    {
+        return response()->streamDownload(function () use ($headers, $rows) {
+            echo '<table border="1"><thead><tr>';
+            foreach ($headers as $header) {
+                echo '<th>' . e($header) . '</th>';
+            }
+            echo '</tr></thead><tbody>';
+            foreach ($rows as $row) {
+                echo '<tr>';
+                foreach ($row as $cell) {
+                    echo '<td>' . e((string) $cell) . '</td>';
+                }
+                echo '</tr>';
+            }
+            echo '</tbody></table>';
+        }, $filename, [
+            'Content-Type' => 'application/vnd.ms-excel; charset=UTF-8',
+        ]);
     }
 }

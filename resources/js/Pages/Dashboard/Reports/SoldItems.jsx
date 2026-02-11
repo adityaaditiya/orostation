@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Head, router } from "@inertiajs/react";
 import DashboardLayout from "@/Layouts/DashboardLayout";
 import InputSelect from "@/Components/Dashboard/InputSelect";
+import Button from "@/Components/Dashboard/Button";
 import Pagination from "@/Components/Dashboard/Pagination";
 import {
     IconDatabaseOff,
@@ -11,6 +12,7 @@ import {
     IconReceipt2,
     IconShoppingBag,
     IconCoin,
+    IconFileSpreadsheet,
 } from "@tabler/icons-react";
 
 const SummaryCard = ({ icon, title, value, description, gradient }) => (
@@ -142,6 +144,10 @@ const SoldItems = ({ soldItems, summary, filters, cashiers, customers }) => {
         filterData.end_date ||
         filterData.cashier_id ||
         filterData.customer_id;
+
+    const handleExport = () => {
+        window.location.href = route("reports.sold-items.export", filterData);
+    };
 
     const summaryCards = [
         {
@@ -333,6 +339,15 @@ const SoldItems = ({ soldItems, summary, filters, cashiers, customers }) => {
                                     ))}
                                 </tbody>
                             </table>
+                        </div>
+                        <div className="flex justify-end">
+                            <Button
+                                type="button"
+                                label="Export Excel"
+                                icon={<IconFileSpreadsheet size={18} />}
+                                className="bg-success-500 hover:bg-success-600 text-white"
+                                onClick={handleExport}
+                            />
                         </div>
                     </div>
                 ) : (
