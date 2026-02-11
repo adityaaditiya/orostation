@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Head, router } from "@inertiajs/react";
 import DashboardLayout from "@/Layouts/DashboardLayout";
 import InputSelect from "@/Components/Dashboard/InputSelect";
+import Button from "@/Components/Dashboard/Button";
 import Pagination from "@/Components/Dashboard/Pagination";
 import {
     IconDatabaseOff,
@@ -11,6 +12,7 @@ import {
     IconReceipt2,
     IconShoppingBag,
     IconCoin,
+    IconFileSpreadsheet,
 } from "@tabler/icons-react";
 
 const SummaryCard = ({ icon, title, value, description, gradient }) => (
@@ -142,6 +144,10 @@ const SoldItems = ({ soldItems, summary, filters, cashiers, customers }) => {
         filterData.end_date ||
         filterData.cashier_id ||
         filterData.customer_id;
+
+    const handleExport = () => {
+        window.location.href = route("reports.sold-items.export", filterData);
+    };
 
     const summaryCards = [
         {
@@ -296,6 +302,7 @@ const SoldItems = ({ soldItems, summary, filters, cashiers, customers }) => {
                                         <th className="px-4 py-4 text-left text-xs font-semibold text-slate-500 uppercase">Tanggal</th>
                                         <th className="px-4 py-4 text-left text-xs font-semibold text-slate-500 uppercase">Invoice</th>
                                         <th className="px-4 py-4 text-left text-xs font-semibold text-slate-500 uppercase">Produk Terjual</th>
+                                        <th className="px-4 py-4 text-left text-xs font-semibold text-slate-500 uppercase">Terjual</th>
                                         <th className="px-4 py-4 text-left text-xs font-semibold text-slate-500 uppercase">Pelanggan</th>
                                         <th className="px-4 py-4 text-left text-xs font-semibold text-slate-500 uppercase">Kasir</th>
                                         {/* <th className="px-4 py-4 text-right text-xs font-semibold text-slate-500 uppercase">Total Nominal Harga Produk</th> */}
@@ -314,7 +321,10 @@ const SoldItems = ({ soldItems, summary, filters, cashiers, customers }) => {
                                                 {item.transaction?.invoice ?? "-"}
                                             </td>
                                             <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-400">
-                                                {item.product?.title ?? "-"} ({item.qty ?? 0})
+                                                {item.product?.title ?? "-"}
+                                            </td>
+                                            <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-400">
+                                                {item.qty ?? 0}
                                             </td>
                                             <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-400">
                                                 {item.transaction?.customer?.name ?? "-"}
@@ -329,6 +339,15 @@ const SoldItems = ({ soldItems, summary, filters, cashiers, customers }) => {
                                     ))}
                                 </tbody>
                             </table>
+                        </div>
+                        <div className="flex justify-end">
+                            <Button
+                                type="button"
+                                label="Export Excel"
+                                icon={<IconFileSpreadsheet size={18} />}
+                                className="bg-success-500 hover:bg-success-600 text-white"
+                                onClick={handleExport}
+                            />
                         </div>
                     </div>
                 ) : (
