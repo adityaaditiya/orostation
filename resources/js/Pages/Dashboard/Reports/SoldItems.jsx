@@ -151,20 +151,20 @@ const SoldItems = ({ soldItems, summary, filters, cashiers, customers }) => {
             icon: <IconReceipt2 size={22} />,
             gradient: "from-sky-500 to-indigo-600",
         },
-        {
-            title: "Jumlah Produk Terjual",
-            value: summary?.total_items ?? 0,
-            description: "Akumulasi qty produk yang terjual",
-            icon: <IconShoppingBag size={22} />,
-            gradient: "from-emerald-500 to-teal-600",
-        },
-        {
-            title: "Total Nominal Produk",
-            value: formatCurrency(summary?.total_nominal ?? 0),
-            description: "Nilai nominal seluruh produk yang terjual",
-            icon: <IconCoin size={22} />,
-            gradient: "from-violet-500 to-fuchsia-600",
-        },
+        // {
+        //     title: "Jumlah Produk Terjual",
+        //     value: summary?.total_items ?? 0,
+        //     description: "Akumulasi qty produk yang terjual",
+        //     icon: <IconShoppingBag size={22} />,
+        //     gradient: "from-emerald-500 to-teal-600",
+        // },
+        // {
+        //     title: "Total Nominal Produk",
+        //     value: formatCurrency(summary?.total_nominal ?? 0),
+        //     description: "Nilai nominal seluruh produk yang terjual",
+        //     icon: <IconCoin size={22} />,
+        //     gradient: "from-violet-500 to-fuchsia-600",
+        // },
     ];
 
     return (
@@ -298,7 +298,7 @@ const SoldItems = ({ soldItems, summary, filters, cashiers, customers }) => {
                                         <th className="px-4 py-4 text-left text-xs font-semibold text-slate-500 uppercase">Produk Terjual</th>
                                         <th className="px-4 py-4 text-left text-xs font-semibold text-slate-500 uppercase">Pelanggan</th>
                                         <th className="px-4 py-4 text-left text-xs font-semibold text-slate-500 uppercase">Kasir</th>
-                                        <th className="px-4 py-4 text-right text-xs font-semibold text-slate-500 uppercase">Total Nominal Harga Produk</th>
+                                        {/* <th className="px-4 py-4 text-right text-xs font-semibold text-slate-500 uppercase">Total Nominal Harga Produk</th> */}
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -322,9 +322,9 @@ const SoldItems = ({ soldItems, summary, filters, cashiers, customers }) => {
                                             <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-400">
                                                 {item.transaction?.cashier?.name ?? "-"}
                                             </td>
-                                            <td className="px-4 py-4 text-right text-sm font-semibold text-slate-900 dark:text-white">
+                                            {/* <td className="px-4 py-4 text-right text-sm font-semibold text-slate-900 dark:text-white">
                                                 {formatCurrency((item.qty ?? 0) * (item.price ?? 0))}
-                                            </td>
+                                            </td> */}
                                         </tr>
                                     ))}
                                 </tbody>
