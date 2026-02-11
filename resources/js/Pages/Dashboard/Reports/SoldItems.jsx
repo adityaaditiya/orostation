@@ -296,6 +296,7 @@ const SoldItems = ({ soldItems, summary, filters, cashiers, customers }) => {
                                         <th className="px-4 py-4 text-left text-xs font-semibold text-slate-500 uppercase">Tanggal</th>
                                         <th className="px-4 py-4 text-left text-xs font-semibold text-slate-500 uppercase">Invoice</th>
                                         <th className="px-4 py-4 text-left text-xs font-semibold text-slate-500 uppercase">Produk Terjual</th>
+                                        <th className="px-4 py-4 text-left text-xs font-semibold text-slate-500 uppercase">Terjual</th>
                                         <th className="px-4 py-4 text-left text-xs font-semibold text-slate-500 uppercase">Pelanggan</th>
                                         <th className="px-4 py-4 text-left text-xs font-semibold text-slate-500 uppercase">Kasir</th>
                                         {/* <th className="px-4 py-4 text-right text-xs font-semibold text-slate-500 uppercase">Total Nominal Harga Produk</th> */}
@@ -314,7 +315,10 @@ const SoldItems = ({ soldItems, summary, filters, cashiers, customers }) => {
                                                 {item.transaction?.invoice ?? "-"}
                                             </td>
                                             <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-400">
-                                                {item.product?.title ?? "-"} ({item.qty ?? 0})
+                                                {item.product?.title ?? "-"}
+                                            </td>
+                                            <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-400">
+                                                {item.qty ?? 0}
                                             </td>
                                             <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-400">
                                                 {item.transaction?.customer?.name ?? "-"}
