@@ -27,26 +27,28 @@ class SoldItemsReportController extends Controller
         ];
 
         $baseQuery = $this->applyFilters(
-            TransactionDetail::query()
-                ->with([
-                    'product:id,title',
-                    'transaction:id,invoice,created_at,cashier_id,customer_id',
-                    'transaction.cashier:id,name',
-                    'transaction.customer:id,name',
-                ])
-                ->whereHas('transaction', fn ($query) => $query->notCanceled()),
-            $filters
-        )->orderByDesc('id');
+    TransactionDetail::query()
+        ->with([
+            'product:id,title',
+            'transaction:id,invoice,created_at,cashier_id,customer_id',
+            'transaction.cashier:id,name',
+            'transaction.customer:id,name',
+        ])
+        ->whereHas('transaction', fn ($query) => $query->notCanceled()),
+    $filters
+);
 
         $soldItems = (clone $baseQuery)
             ->paginate(10)
             ->withQueryString();
 
         $totals = (clone $baseQuery)
-            ->selectRaw('COALESCE(SUM(qty), 0) as total_items')
-            ->selectRaw('COALESCE(SUM(qty * price), 0) as total_nominal')
-            ->selectRaw('COUNT(DISTINCT transaction_id) as total_invoices')
-            ->first();
+    ->selectRaw('
+        COALESCE(SUM(qty), 0) as total_items,
+        COALESCE(SUM(qty * price), 0) as total_nominal,
+        COUNT(DISTINCT transaction_id) as total_invoices
+    ')
+    ->first();
 
         $summary = [
             'total_items' => (int) ($totals->total_items ?? 0),
@@ -77,17 +79,10 @@ class SoldItemsReportController extends Controller
             'customer_id' => $request->input('customer_id'),
         ];
 
-        $soldItems = $this->applyFilters(
-            TransactionDetail::query()
-                ->with([
-                    'product:id,title',
-                    'transaction:id,invoice,created_at,cashier_id,customer_id',
-                    'transaction.cashier:id,name',
-                    'transaction.customer:id,name',
-                ])
-                ->whereHas('transaction', fn ($query) => $query->notCanceled()),
-            $filters
-        )->orderByDesc('id')->get();
+        $soldItems = (clone $baseQuery)
+    ->orderByDesc('id')
+    ->paginate(10)
+    ->withQueryString();
 
         $headers = ['No', 'Tanggal', 'Invoice', 'Produk Terjual', 'Terjual', 'Pelanggan', 'Kasir'];
         $rows = $soldItems->values()->map(function ($item, $index) {

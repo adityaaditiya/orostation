@@ -253,22 +253,22 @@ const SoldItems = ({ soldItems, summary, filters, cashiers, customers }) => {
                                         className="w-full h-11 px-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-200"
                                     />
                                 </div>
-                                <InputSelect
+                                {/* <InputSelect
                                     label="Kasir"
                                     data={cashiers}
                                     selected={selectedCashier}
                                     setSelected={handleSelectCashier}
                                     placeholder="Semua kasir"
                                     searchable
-                                />
-                                <InputSelect
+                                /> */}
+                                {/* <InputSelect
                                     label="Pelanggan"
                                     data={customers}
                                     selected={selectedCustomer}
                                     setSelected={handleSelectCustomer}
                                     placeholder="Semua pelanggan"
                                     searchable
-                                />
+                                /> */}
                             </div>
                             <div className="flex justify-end gap-2 mt-4">
                                 {hasActiveFilters && (

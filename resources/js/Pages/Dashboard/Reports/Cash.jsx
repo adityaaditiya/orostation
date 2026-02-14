@@ -279,14 +279,14 @@ const Cash = ({ transactions, summary, filters, cashiers, customers }) => {
                                         className="w-full h-11 px-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-200 placeholder-slate-400 focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all"
                                     />
                                 </div>
-                                <InputSelect
+                                {/* <InputSelect
                                     label="Kasir"
                                     data={cashiers}
                                     selected={selectedCashier}
                                     setSelected={handleSelectCashier}
                                     placeholder="Semua kasir"
                                     searchable
-                                />
+                                /> */}
                                 <div>
                                     <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                                         Shift

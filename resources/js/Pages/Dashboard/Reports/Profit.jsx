@@ -255,7 +255,7 @@ const ProfitReport = ({
                                         className="w-full h-11 px-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-200 placeholder-slate-400 focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all"
                                     />
                                 </div>
-                                <InputSelect
+                                {/* <InputSelect
                                     label="Kasir"
                                     data={cashiers}
                                     selected={selectedCashier}
@@ -268,7 +268,7 @@ const ProfitReport = ({
                                     }}
                                     placeholder="Semua kasir"
                                     searchable
-                                />
+                                /> */}
                                 {/* <InputSelect
                                     label="Pelanggan"
                                     data={customers}
