@@ -46,6 +46,7 @@ const defaultFilterState = {
     cashier_id: "",
     customer_id: "",
     shift: "",
+    transaction_category: "",
 };
 
 const formatCurrency = (value = 0) =>
@@ -68,6 +69,7 @@ const Cash = ({ transactions, summary, filters, cashiers, customers }) => {
         cashier_id: castFilterString(filters?.cashier_id),
         customer_id: castFilterString(filters?.customer_id),
         shift: castFilterString(filters?.shift),
+        transaction_category: castFilterString(filters?.transaction_category),
     });
 
     const cashierFromFilters = useMemo(
@@ -107,6 +109,7 @@ const Cash = ({ transactions, summary, filters, cashiers, customers }) => {
             cashier_id: castFilterString(filters?.cashier_id),
             customer_id: castFilterString(filters?.customer_id),
             shift: castFilterString(filters?.shift),
+            transaction_category: castFilterString(filters?.transaction_category),
         });
     }, [filters]);
 
@@ -150,7 +153,8 @@ const Cash = ({ transactions, summary, filters, cashiers, customers }) => {
         filterData.end_date ||
         filterData.cashier_id ||
         filterData.customer_id ||
-        filterData.shift;
+        filterData.shift ||
+        filterData.transaction_category;
 
     const safeSummary = {
         cash_in_total: summary?.cash_in_total ?? 0,
@@ -301,6 +305,28 @@ const Cash = ({ transactions, summary, filters, cashiers, customers }) => {
                                         <option value="">Semua shift</option>
                                         <option value="pagi">Shift Pagi (06:00 - 15:00)</option>
                                         <option value="malam">Shift Malam (15:00 - 00:00)</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                                        Kategori Transaksi
+                                    </label>
+                                    <select
+                                        value={filterData.transaction_category}
+                                        onChange={(e) =>
+                                            handleChange(
+                                                "transaction_category",
+                                                e.target.value
+                                            )
+                                        }
+                                        className="w-full h-11 px-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all"
+                                    >
+                                        <option value="">Semua kategori</option>
+                                        <option value="transaksi_penjualan">
+                                            Transaksi Penjualan
+                                        </option>
+                                        <option value="uang_masuk">Uang Masuk</option>
+                                        <option value="uang_keluar">Uang Keluar</option>
                                     </select>
                                 </div>
                                 {/* <InputSelect

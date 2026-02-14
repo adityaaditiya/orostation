@@ -53,11 +53,17 @@ function ProductCard({ product, onAddToCart, isAdding }) {
                 )}
 
                 {/* Stock Badge */}
-                {lowStock && (
-                    <span className="absolute top-2 right-2 px-2 py-0.5 text-xs font-medium bg-warning-100 text-warning-700 dark:bg-warning-900/50 dark:text-warning-400 rounded-full">
-                        Sisa {product.stock}
-                    </span>
-                )}
+                <span
+                    className={`absolute top-2 right-2 px-2 py-0.5 text-xs font-medium rounded-full ${
+                        !hasStock
+                            ? "bg-danger-100 text-danger-700 dark:bg-danger-900/50 dark:text-danger-400"
+                            : lowStock
+                              ? "bg-warning-100 text-warning-700 dark:bg-warning-900/50 dark:text-warning-400"
+                              : "bg-primary-100 text-primary-700 dark:bg-primary-900/50 dark:text-primary-300"
+                    }`}
+                >
+                    Stok {product.stock}
+                </span>
 
                 {/* Out of Stock Overlay */}
                 {!hasStock && (
