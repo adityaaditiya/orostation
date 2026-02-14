@@ -385,6 +385,9 @@ const Sales = ({ transactions, summary, filters, cashiers, customers }) => {
                                             <th className="px-4 py-4 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">
                                                 Kasir
                                             </th>
+                                            <th className="px-4 py-4 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">
+                                                Metode Pembayaran
+                                            </th>
                                             <th className="px-4 py-4 text-center text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">
                                                 Item
                                             </th>
@@ -441,6 +444,9 @@ const Sales = ({ transactions, summary, filters, cashiers, customers }) => {
                                                 </td>
                                                 <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-400">
                                                     {trx.cashier?.name ?? "-"}
+                                                </td>
+                                                <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-400">
+                                                    {trx.payment_method ?? "-"}
                                                 </td>
                                                 <td className="px-4 py-4 text-center">
                                                     <span className="px-2 py-0.5 text-xs font-medium bg-primary-100 dark:bg-primary-900/50 text-primary-700 dark:text-primary-400 rounded-full">
