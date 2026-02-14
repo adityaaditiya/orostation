@@ -27,6 +27,7 @@ class SalesReportController extends Controller
             'cashier_id' => $request->input('cashier_id'),
             'customer_id' => $request->input('customer_id'),
             'shift' => $request->input('shift'),
+            'payment_method' => $request->input('payment_method'),
         ];
 
         $baseListQuery = $this->applyFilters(
@@ -94,6 +95,7 @@ class SalesReportController extends Controller
             'cashier_id' => $request->input('cashier_id'),
             'customer_id' => $request->input('customer_id'),
             'shift' => $request->input('shift'),
+            'payment_method' => $request->input('payment_method'),
         ];
 
         $transactions = $this->applyFilters(
@@ -103,7 +105,7 @@ class SalesReportController extends Controller
             $filters
         )->orderByDesc('created_at')->get();
 
-        $headers = ['No', 'Invoice', 'Produk', 'Tanggal', 'Pelanggan', 'Kasir', 'Item', 'Diskon', 'Total'];
+        $headers = ['No', 'Invoice', 'Produk', 'Tanggal', 'Pelanggan', 'Kasir', 'Metode Pembayaran', 'Item', 'Diskon', 'Total'];
         $rows = $transactions->values()->map(function ($trx, $index) {
             $productNames = $trx->details
                 ->pluck('product.title')
@@ -119,6 +121,7 @@ class SalesReportController extends Controller
                 ? Carbon::parse($trx->created_at)->format('Y-m-d H:i') : '-',
                 $trx->customer?->name ?? '-',
                 $trx->cashier?->name ?? '-',
+                $this->formatPaymentMethod($trx->payment_method),
                 (int) ($trx->total_items ?? 0),
                 $this->formatCurrency((int) ($trx->discount ?? 0)),
                 $this->formatCurrency((int) ($trx->grand_total ?? 0)),
@@ -137,6 +140,7 @@ class SalesReportController extends Controller
             ->when($filters['invoice'] ?? null, fn ($q, $invoice) => $q->where('invoice', 'like', '%' . $invoice . '%'))
             ->when($filters['cashier_id'] ?? null, fn ($q, $cashier) => $q->where('cashier_id', $cashier))
             ->when($filters['customer_id'] ?? null, fn ($q, $customer) => $q->where('customer_id', $customer))
+            ->when($filters['payment_method'] ?? null, fn ($q, $paymentMethod) => $q->where('payment_method', $paymentMethod))
             ->when($filters['start_date'] ?? null, fn ($q, $start) => $q->whereDate('created_at', '>=', $start))
             ->when($filters['end_date'] ?? null, fn ($q, $end) => $q->whereDate('created_at', '<=', $end));
 
@@ -156,6 +160,17 @@ class SalesReportController extends Controller
     protected function formatCurrency(int $value): string
     {
         return 'Rp ' . number_format($value, 0, ',', '.');
+    }
+
+    protected function formatPaymentMethod(?string $method): string
+    {
+        return match (strtolower((string) $method)) {
+            'cash' => 'Tunai',
+            'qris' => 'QRIS',
+            'midtrans' => 'Midtrans',
+            'xendit' => 'Xendit',
+            default => $method ? ucfirst($method) : '-',
+        };
     }
 
     protected function downloadExcel(string $filename, array $headers, array $rows)
