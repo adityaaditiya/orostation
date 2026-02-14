@@ -28,7 +28,11 @@ class CashReportController extends Controller
             'cashier_id' => $request->input('cashier_id'),
             'customer_id' => $request->input('customer_id'),
             'shift' => $request->input('shift'),
+            'transaction_category' => $request->input('transaction_category'),
         ];
+
+        $includeTransactions = empty($filters['transaction_category']) || $filters['transaction_category'] === 'transaksi_penjualan';
+        $includeCashEntries = empty($filters['transaction_category']) || in_array($filters['transaction_category'], ['uang_masuk', 'uang_keluar'], true);
 
         $transactionQuery = $this->applyFilters(
             Transaction::query()->notCanceled()
@@ -41,27 +45,27 @@ class CashReportController extends Controller
             $filters
         )->orderByDesc('created_at');
 
-        $transactionsList = (clone $transactionQuery)
-            ->get()
-            ->map(fn ($trx) => [
+        $transactionsList = $includeTransactions
+            ? (clone $transactionQuery)->get()->map(fn ($trx) => [
                 'id' => 'transaction-' . $trx->id,
                 'category' => 'Transaksi Penjualan',
                 'description' => $trx->invoice,
                 'cash_in' => (int) $trx->grand_total,
                 'cash_out' => 0,
                 'created_at' => $trx->created_at,
-            ]);
+            ])
+            : collect();
 
-        $cashEntryList = (clone $cashEntryQuery)
-            ->get()
-            ->map(fn ($entry) => [
+        $cashEntryList = $includeCashEntries
+            ? (clone $cashEntryQuery)->get()->map(fn ($entry) => [
                 'id' => 'cash-entry-' . $entry->id,
                 'category' => $entry->category === 'in' ? 'Uang Masuk' : 'Uang Keluar',
                 'description' => $entry->description,
                 'cash_in' => $entry->category === 'in' ? (int) $entry->amount : 0,
                 'cash_out' => $entry->category === 'out' ? (int) $entry->amount : 0,
                 'created_at' => $entry->created_at,
-            ]);
+            ])
+            : collect();
 
         $mergedRows = $transactionsList
             ->concat($cashEntryList)
@@ -70,16 +74,20 @@ class CashReportController extends Controller
 
         $transactions = $this->paginateRows($mergedRows, $request);
 
-        $transactionTotals = $this->applyFilters(Transaction::query()->notCanceled(), $filters)
-            ->selectRaw('COALESCE(SUM(grand_total), 0) as cash_in_total')
-            ->first();
+        $transactionTotals = $includeTransactions
+            ? $this->applyFilters(Transaction::query()->notCanceled(), $filters)
+                ->selectRaw('COALESCE(SUM(grand_total), 0) as cash_in_total')
+                ->first()
+            : (object) ['cash_in_total' => 0];
 
-        $cashEntryTotals = $this->applyCashEntryFilters(CashEntry::query(), $filters)
-            ->selectRaw("
-                COALESCE(SUM(CASE WHEN category = 'in' THEN amount ELSE 0 END), 0) as cash_in_total,
-                COALESCE(SUM(CASE WHEN category = 'out' THEN amount ELSE 0 END), 0) as cash_out_total
-            ")
-            ->first();
+        $cashEntryTotals = $includeCashEntries
+            ? $this->applyCashEntryFilters(CashEntry::query(), $filters)
+                ->selectRaw("
+                    COALESCE(SUM(CASE WHEN category = 'in' THEN amount ELSE 0 END), 0) as cash_in_total,
+                    COALESCE(SUM(CASE WHEN category = 'out' THEN amount ELSE 0 END), 0) as cash_out_total
+                ")
+                ->first()
+            : (object) ['cash_in_total' => 0, 'cash_out_total' => 0];
 
         $cashInTotal = (int) ($transactionTotals->cash_in_total ?? 0)
             + (int) ($cashEntryTotals->cash_in_total ?? 0);
@@ -113,7 +121,11 @@ class CashReportController extends Controller
             'cashier_id' => $request->input('cashier_id'),
             'customer_id' => $request->input('customer_id'),
             'shift' => $request->input('shift'),
+            'transaction_category' => $request->input('transaction_category'),
         ];
+
+        $includeTransactions = empty($filters['transaction_category']) || $filters['transaction_category'] === 'transaksi_penjualan';
+        $includeCashEntries = empty($filters['transaction_category']) || in_array($filters['transaction_category'], ['uang_masuk', 'uang_keluar'], true);
 
         $transactionQuery = $this->applyFilters(
             Transaction::query()->notCanceled()
@@ -126,25 +138,25 @@ class CashReportController extends Controller
             $filters
         )->orderByDesc('created_at');
 
-        $transactionsList = (clone $transactionQuery)
-            ->get()
-            ->map(fn ($trx) => [
+        $transactionsList = $includeTransactions
+            ? (clone $transactionQuery)->get()->map(fn ($trx) => [
                 'category' => 'Transaksi Penjualan',
                 'description' => $trx->invoice,
                 'cash_in' => (int) $trx->grand_total,
                 'cash_out' => 0,
                 'created_at' => $trx->created_at,
-            ]);
+            ])
+            : collect();
 
-        $cashEntryList = (clone $cashEntryQuery)
-            ->get()
-            ->map(fn ($entry) => [
+        $cashEntryList = $includeCashEntries
+            ? (clone $cashEntryQuery)->get()->map(fn ($entry) => [
                 'category' => $entry->category === 'in' ? 'Uang Masuk' : 'Uang Keluar',
                 'description' => $entry->description,
                 'cash_in' => $entry->category === 'in' ? (int) $entry->amount : 0,
                 'cash_out' => $entry->category === 'out' ? (int) $entry->amount : 0,
                 'created_at' => $entry->created_at,
-            ]);
+            ])
+            : collect();
 
         $mergedRows = $transactionsList
             ->concat($cashEntryList)
@@ -176,6 +188,7 @@ class CashReportController extends Controller
             ->when($filters['start_date'] ?? null, fn ($q, $start) => $q->whereDate('created_at', '>=', $start))
             ->when($filters['end_date'] ?? null, fn ($q, $end) => $q->whereDate('created_at', '<=', $end));
 
+
         if (($filters['shift'] ?? null) === 'pagi') {
             $query->whereTime('created_at', '>=', '06:00:00')
                 ->whereTime('created_at', '<', '15:00:00');
@@ -198,6 +211,14 @@ class CashReportController extends Controller
             ->when($filters['cashier_id'] ?? null, fn ($q, $cashier) => $q->where('cashier_id', $cashier))
             ->when($filters['start_date'] ?? null, fn ($q, $start) => $q->whereDate('created_at', '>=', $start))
             ->when($filters['end_date'] ?? null, fn ($q, $end) => $q->whereDate('created_at', '<=', $end));
+
+        if (($filters['transaction_category'] ?? null) === 'uang_masuk') {
+            $query->where('category', 'in');
+        }
+
+        if (($filters['transaction_category'] ?? null) === 'uang_keluar') {
+            $query->where('category', 'out');
+        }
 
         if (($filters['shift'] ?? null) === 'pagi') {
             $query->whereTime('created_at', '>=', '06:00:00')
