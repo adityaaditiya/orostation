@@ -51,7 +51,6 @@ const defaultFilterState = {
     cashier_id: "",
     customer_id: "",
     shift: "",
-    payment_method: "",
 };
 
 const formatCurrency = (value = 0) =>
@@ -64,16 +63,6 @@ const formatCurrency = (value = 0) =>
 const castFilterString = (value) =>
     typeof value === "number" ? String(value) : value ?? "";
 
-const formatPaymentMethod = (value = "") => {
-    if (!value) return "-";
-    const normalized = value.toString().toLowerCase();
-    if (normalized === "cash") return "Tunai";
-    if (normalized === "non-cash") return "Non Tunai";
-    return normalized
-        .replace(/[_-]+/g, " ")
-        .replace(/\b\w/g, (char) => char.toUpperCase());
-};
-
 const Sales = ({ transactions, summary, filters, cashiers, customers }) => {
     const [showFilters, setShowFilters] = useState(false);
     const [filterData, setFilterData] = useState({
@@ -84,7 +73,6 @@ const Sales = ({ transactions, summary, filters, cashiers, customers }) => {
         cashier_id: castFilterString(filters?.cashier_id),
         customer_id: castFilterString(filters?.customer_id),
         shift: castFilterString(filters?.shift),
-        payment_method: castFilterString(filters?.payment_method),
     });
 
     const cashierFromFilters = useMemo(
@@ -124,7 +112,6 @@ const Sales = ({ transactions, summary, filters, cashiers, customers }) => {
             cashier_id: castFilterString(filters?.cashier_id),
             customer_id: castFilterString(filters?.customer_id),
             shift: castFilterString(filters?.shift),
-            payment_method: castFilterString(filters?.payment_method),
         });
     }, [filters]);
 
@@ -172,8 +159,7 @@ const Sales = ({ transactions, summary, filters, cashiers, customers }) => {
         filterData.end_date ||
         filterData.cashier_id ||
         filterData.customer_id ||
-        filterData.shift ||
-        filterData.payment_method;
+        filterData.shift;
 
     const safeSummary = {
         orders_count: summary?.orders_count ?? 0,
@@ -341,25 +327,6 @@ const Sales = ({ transactions, summary, filters, cashiers, customers }) => {
                                         <option value="malam">Shift Malam (15:00 - 00:00)</option>
                                     </select>
                                 </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                                        Metode Pembayaran
-                                    </label>
-                                    <select
-                                        value={filterData.payment_method}
-                                        onChange={(e) =>
-                                            handleChange(
-                                                "payment_method",
-                                                e.target.value
-                                            )
-                                        }
-                                        className="w-full h-11 px-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all"
-                                    >
-                                        <option value="">Semua metode</option>
-                                        <option value="cash">Tunai</option>
-                                        <option value="non-cash">Non Tunai</option>
-                                    </select>
-                                </div>
                                 {/* <InputSelect
                                     label="Pelanggan"
                                     data={customers}
@@ -479,9 +446,7 @@ const Sales = ({ transactions, summary, filters, cashiers, customers }) => {
                                                     {trx.cashier?.name ?? "-"}
                                                 </td>
                                                 <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-400">
-                                                    {formatPaymentMethod(
-                                                        trx.payment_method
-                                                    )}
+                                                    {trx.payment_method ?? "-"}
                                                 </td>
                                                 <td className="px-4 py-4 text-center">
                                                     <span className="px-2 py-0.5 text-xs font-medium bg-primary-100 dark:bg-primary-900/50 text-primary-700 dark:text-primary-400 rounded-full">
