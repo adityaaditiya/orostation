@@ -51,6 +51,7 @@ const defaultFilterState = {
     cashier_id: "",
     customer_id: "",
     shift: "",
+    payment_method: "",
 };
 
 const formatCurrency = (value = 0) =>
@@ -63,7 +64,22 @@ const formatCurrency = (value = 0) =>
 const castFilterString = (value) =>
     typeof value === "number" ? String(value) : value ?? "";
 
-const Sales = ({ transactions, summary, filters, cashiers, customers }) => {
+const formatPaymentMethodLabel = (value = "") =>
+    value
+        .split("_")
+        .map((word) =>
+            word ? word.charAt(0).toUpperCase() + word.slice(1) : word
+        )
+        .join(" ");
+
+const Sales = ({
+    transactions,
+    summary,
+    filters,
+    cashiers,
+    customers,
+    paymentMethods,
+}) => {
     const [showFilters, setShowFilters] = useState(false);
     const [filterData, setFilterData] = useState({
         ...defaultFilterState,
@@ -73,6 +89,7 @@ const Sales = ({ transactions, summary, filters, cashiers, customers }) => {
         cashier_id: castFilterString(filters?.cashier_id),
         customer_id: castFilterString(filters?.customer_id),
         shift: castFilterString(filters?.shift),
+        payment_method: castFilterString(filters?.payment_method),
     });
 
     const cashierFromFilters = useMemo(
@@ -112,6 +129,7 @@ const Sales = ({ transactions, summary, filters, cashiers, customers }) => {
             cashier_id: castFilterString(filters?.cashier_id),
             customer_id: castFilterString(filters?.customer_id),
             shift: castFilterString(filters?.shift),
+            payment_method: castFilterString(filters?.payment_method),
         });
     }, [filters]);
 
@@ -159,7 +177,8 @@ const Sales = ({ transactions, summary, filters, cashiers, customers }) => {
         filterData.end_date ||
         filterData.cashier_id ||
         filterData.customer_id ||
-        filterData.shift;
+        filterData.shift ||
+        filterData.payment_method;
 
     const safeSummary = {
         orders_count: summary?.orders_count ?? 0,
@@ -325,6 +344,28 @@ const Sales = ({ transactions, summary, filters, cashiers, customers }) => {
                                         <option value="">Semua shift</option>
                                         <option value="pagi">Shift Pagi (06:00 - 15:00)</option>
                                         <option value="malam">Shift Malam (15:00 - 00:00)</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                                        Metode Pembayaran
+                                    </label>
+                                    <select
+                                        value={filterData.payment_method}
+                                        onChange={(e) =>
+                                            handleChange(
+                                                "payment_method",
+                                                e.target.value
+                                            )
+                                        }
+                                        className="w-full h-11 px-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all"
+                                    >
+                                        <option value="">Semua metode pembayaran</option>
+                                        {(paymentMethods ?? []).map((method) => (
+                                            <option key={method} value={method}>
+                                                {formatPaymentMethodLabel(method)}
+                                            </option>
+                                        ))}
                                     </select>
                                 </div>
                                 {/* <InputSelect
