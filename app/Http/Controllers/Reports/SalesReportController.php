@@ -27,7 +27,6 @@ class SalesReportController extends Controller
             'cashier_id' => $request->input('cashier_id'),
             'customer_id' => $request->input('customer_id'),
             'shift' => $request->input('shift'),
-            'payment_method' => $request->input('payment_method'),
         ];
 
         $baseListQuery = $this->applyFilters(
@@ -95,7 +94,6 @@ class SalesReportController extends Controller
             'cashier_id' => $request->input('cashier_id'),
             'customer_id' => $request->input('customer_id'),
             'shift' => $request->input('shift'),
-            'payment_method' => $request->input('payment_method'),
         ];
 
         $transactions = $this->applyFilters(
@@ -139,7 +137,6 @@ class SalesReportController extends Controller
             ->when($filters['invoice'] ?? null, fn ($q, $invoice) => $q->where('invoice', 'like', '%' . $invoice . '%'))
             ->when($filters['cashier_id'] ?? null, fn ($q, $cashier) => $q->where('cashier_id', $cashier))
             ->when($filters['customer_id'] ?? null, fn ($q, $customer) => $q->where('customer_id', $customer))
-            ->when($filters['payment_method'] ?? null, fn ($q, $paymentMethod) => $q->where('payment_method', $paymentMethod))
             ->when($filters['start_date'] ?? null, fn ($q, $start) => $q->whereDate('created_at', '>=', $start))
             ->when($filters['end_date'] ?? null, fn ($q, $end) => $q->whereDate('created_at', '<=', $end));
 
