@@ -96,7 +96,7 @@ class ProfitReportController extends Controller
             $filters
         )->orderByDesc('created_at')->get();
 
-        $headers = ['No', 'Invoice', 'Tanggal', 'Kasir', 'Pelanggan', 'Item', 'Penjualan', 'Profit'];
+        $headers = ['No', 'Invoice', 'Tanggal', 'Kasir', 'Pelanggan', 'Item', 'Penjualan', 'Pajak', 'Profit'];
         $rows = $transactions->values()->map(function ($trx, $index) {
             return [
                 $index + 1,
@@ -107,6 +107,7 @@ class ProfitReportController extends Controller
                 $trx->customer?->name ?? '-',
                 (int) ($trx->total_items ?? 0),
                 $this->formatCurrency((int) ($trx->grand_total ?? 0)),
+                $this->formatCurrency((int) ($trx->tax ?? round(($trx->grand_total ?? 0) * 0.1))),
                 $this->formatCurrency((int) ($trx->total_profit ?? 0)),
             ];
         })->all();
@@ -136,7 +137,7 @@ class ProfitReportController extends Controller
             $filters
         )->orderByDesc('created_at')->get();
 
-        $headers = ['No', 'Invoice', 'Kasir', 'Pelanggan', 'Item', 'Penjualan', 'Profit'];
+        $headers = ['No', 'Invoice', 'Kasir', 'Pelanggan', 'Item', 'Penjualan', 'Pajak', 'Profit'];
         $rows = $transactions->values()->map(function ($trx, $index) {
             return [
                 $index + 1,
@@ -145,6 +146,7 @@ class ProfitReportController extends Controller
                 $trx->customer?->name ?? '-',
                 (int) ($trx->total_items ?? 0),
                 $this->formatCurrency((int) ($trx->grand_total ?? 0)),
+                $this->formatCurrency((int) ($trx->tax ?? round(($trx->grand_total ?? 0) * 0.1))),
                 $this->formatCurrency((int) ($trx->total_profit ?? 0)),
             ];
         })->all();
