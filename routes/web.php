@@ -98,12 +98,15 @@ Route::group(['prefix' => 'dashboard', 'middleware' => ['auth']], function () {
     //reports
     Route::get('/reports/sales', [SalesReportController::class, 'index'])->middleware('permission:reports-access')->name('reports.sales.index');
     Route::get('/reports/sales/export', [SalesReportController::class, 'export'])->middleware('permission:reports-access')->name('reports.sales.export');
+    Route::get('/reports/sales/export-pdf', [SalesReportController::class, 'exportPdf'])->middleware('permission:reports-access')->name('reports.sales.export-pdf');
     Route::get('/reports/sold-items', [SoldItemsReportController::class, 'index'])->middleware('permission:reports-access')->name('reports.sold-items.index');
     Route::get('/reports/sold-items/export', [SoldItemsReportController::class, 'export'])->middleware('permission:reports-access')->name('reports.sold-items.export');
     Route::get('/reports/profits', [ProfitReportController::class, 'index'])->middleware('permission:profits-access')->name('reports.profits.index');
     Route::get('/reports/profits/export', [ProfitReportController::class, 'export'])->middleware('permission:profits-access')->name('reports.profits.export');
+    Route::get('/reports/profits/export-pdf', [ProfitReportController::class, 'exportPdf'])->middleware('permission:profits-access')->name('reports.profits.export-pdf');
     Route::get('/reports/cash', [CashReportController::class, 'index'])->middleware('permission:reports-access')->name('reports.cash.index');
     Route::get('/reports/cash/export', [CashReportController::class, 'export'])->middleware('permission:reports-access')->name('reports.cash.export');
+    Route::get('/reports/cash/export-pdf', [CashReportController::class, 'exportPdf'])->middleware('permission:reports-access')->name('reports.cash.export-pdf');
     Route::get('/reports/authorizations', [AuthorizationReportController::class, 'index'])->middleware('permission:reports-access')->name('reports.authorizations.index');
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
