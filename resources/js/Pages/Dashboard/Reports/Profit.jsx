@@ -341,6 +341,9 @@ const ProfitReport = ({
                                                 Penjualan
                                             </th>
                                             <th className="px-4 py-4 text-right text-xs font-semibold text-slate-500 uppercase">
+                                                Pajak
+                                            </th>
+                                            <th className="px-4 py-4 text-right text-xs font-semibold text-slate-500 uppercase">
                                                 Profit
                                             </th>
                                         </tr>
@@ -378,6 +381,11 @@ const ProfitReport = ({
                                                 <td className="px-4 py-4 text-right text-sm text-slate-900 dark:text-white">
                                                     {formatCurrency(
                                                         trx.grand_total ?? 0
+                                                    )}
+                                                </td>
+                                                <td className="px-4 py-4 text-right text-sm text-slate-900 dark:text-white">
+                                                    {formatCurrency(
+                                                        Math.round((trx.grand_total ?? 0) * 0.1)
                                                     )}
                                                 </td>
                                                 <td className="px-4 py-4 text-right text-sm font-semibold text-success-600 dark:text-success-400">
