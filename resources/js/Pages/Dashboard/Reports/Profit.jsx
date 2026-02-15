@@ -9,6 +9,7 @@ import {
     IconCoin,
     IconDatabaseOff,
     IconFileSpreadsheet,
+    IconFileTypePdf,
     IconPercentage,
     IconReceipt,
     IconTrendingUp,
@@ -160,6 +161,10 @@ const ProfitReport = ({
 
     const handleExport = () => {
         window.location.href = route("reports.profits.export", filterData);
+    };
+
+    const handleExportPdf = () => {
+        window.location.href = route("reports.profits.export-pdf", filterData);
     };
 
     return (
@@ -386,7 +391,14 @@ const ProfitReport = ({
                                 </table>
                             </div>
                         </div>
-                        <div className="flex justify-end">
+                        <div className="flex justify-end gap-2">
+                            <Button
+                                type="button"
+                                label="Export PDF"
+                                icon={<IconFileTypePdf size={18} />}
+                                className="bg-red-500 hover:bg-red-600 text-white"
+                                onClick={handleExportPdf}
+                            />
                             <Button
                                 type="button"
                                 label="Export Excel"

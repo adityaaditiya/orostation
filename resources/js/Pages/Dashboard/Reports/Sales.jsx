@@ -17,6 +17,7 @@ import {
     IconSearch,
     IconCalendar,
     IconFileSpreadsheet,
+    IconFileTypePdf,
 } from "@tabler/icons-react";
 
 // Summary Card Component
@@ -191,6 +192,10 @@ const Sales = ({
 
     const handleExport = () => {
         window.location.href = route("reports.sales.export", filterData);
+    };
+
+    const handleExportPdf = () => {
+        window.location.href = route("reports.sales.export-pdf", filterData);
     };
 
     const summaryCards = [
@@ -515,7 +520,14 @@ const Sales = ({
                                 </table>
                             </div>
                         </div>
-                        <div className="flex justify-end">
+                        <div className="flex justify-end gap-2">
+                            <Button
+                                type="button"
+                                label="Export PDF"
+                                icon={<IconFileTypePdf size={18} />}
+                                className="bg-red-500 hover:bg-red-600 text-white"
+                                onClick={handleExportPdf}
+                            />
                             <Button
                                 type="button"
                                 label="Export Excel"
