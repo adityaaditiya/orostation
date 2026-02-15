@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Reports;
 
 use App\Http\Controllers\Controller;
 use App\Models\Customer;
-use App\Models\Profit;
 use App\Models\Transaction;
 use App\Models\TransactionDetail;
 use App\Models\User;
@@ -26,11 +25,15 @@ class ProfitReportController extends Controller
             'customer_id' => $request->input('customer_id'),
         ];
 
+        $taxExpression = 'COALESCE(tax, ROUND(grand_total * 0.1))';
+
         $baseQuery = $this->applyFilters(
             Transaction::query()->notCanceled()
                 ->with(['cashier:id,name', 'customer:id,name'])
-                ->withSum('profits as total_profit', 'total')
-                ->withSum('details as total_items', 'qty'),
+                ->withSum('details as total_items', 'qty')
+                ->select('transactions.*')
+                ->selectRaw($taxExpression . ' as tax_amount')
+                ->selectRaw('(grand_total - ' . $taxExpression . ') as total_profit'),
             $filters
         )->orderByDesc('created_at');
 
@@ -40,11 +43,10 @@ class ProfitReportController extends Controller
 
         $transactionIds = (clone $baseQuery)->pluck('id');
 
-        $profitTotal = $transactionIds->isNotEmpty()
-            ? Profit::whereIn('transaction_id', $transactionIds)->sum('total')
-            : 0;
+        $taxTotal = (clone $baseQuery)->sum('tax_amount');
 
         $revenueTotal = (clone $baseQuery)->sum('grand_total');
+        $profitTotal = $revenueTotal - $taxTotal;
 
         $ordersCount = (clone $baseQuery)->count();
 
@@ -56,6 +58,7 @@ class ProfitReportController extends Controller
 
         $summary = [
             'profit_total' => (int) $profitTotal,
+            'tax_total' => (int) $taxTotal,
             'revenue_total' => (int) $revenueTotal,
             'orders_count' => (int) $ordersCount,
             'items_sold' => (int) $itemsSold,
@@ -88,11 +91,15 @@ class ProfitReportController extends Controller
             'customer_id' => $request->input('customer_id'),
         ];
 
+        $taxExpression = 'COALESCE(tax, ROUND(grand_total * 0.1))';
+
         $transactions = $this->applyFilters(
             Transaction::query()->notCanceled()
                 ->with(['cashier:id,name', 'customer:id,name'])
-                ->withSum('profits as total_profit', 'total')
-                ->withSum('details as total_items', 'qty'),
+                ->withSum('details as total_items', 'qty')
+                ->select('transactions.*')
+                ->selectRaw($taxExpression . ' as tax_amount')
+                ->selectRaw('(grand_total - ' . $taxExpression . ') as total_profit'),
             $filters
         )->orderByDesc('created_at')->get();
 
@@ -107,7 +114,7 @@ class ProfitReportController extends Controller
                 $trx->customer?->name ?? '-',
                 (int) ($trx->total_items ?? 0),
                 $this->formatCurrency((int) ($trx->grand_total ?? 0)),
-                $this->formatCurrency((int) ($trx->tax ?? round(($trx->grand_total ?? 0) * 0.1))),
+                $this->formatCurrency((int) ($trx->tax_amount ?? round(($trx->grand_total ?? 0) * 0.1))),
                 $this->formatCurrency((int) ($trx->total_profit ?? 0)),
             ];
         })->all();
@@ -129,11 +136,15 @@ class ProfitReportController extends Controller
             'customer_id' => $request->input('customer_id'),
         ];
 
+        $taxExpression = 'COALESCE(tax, ROUND(grand_total * 0.1))';
+
         $transactions = $this->applyFilters(
             Transaction::query()->notCanceled()
                 ->with(['cashier:id,name', 'customer:id,name'])
-                ->withSum('profits as total_profit', 'total')
-                ->withSum('details as total_items', 'qty'),
+                ->withSum('details as total_items', 'qty')
+                ->select('transactions.*')
+                ->selectRaw($taxExpression . ' as tax_amount')
+                ->selectRaw('(grand_total - ' . $taxExpression . ') as total_profit'),
             $filters
         )->orderByDesc('created_at')->get();
 
@@ -146,7 +157,7 @@ class ProfitReportController extends Controller
                 $trx->customer?->name ?? '-',
                 (int) ($trx->total_items ?? 0),
                 $this->formatCurrency((int) ($trx->grand_total ?? 0)),
-                $this->formatCurrency((int) ($trx->tax ?? round(($trx->grand_total ?? 0) * 0.1))),
+                $this->formatCurrency((int) ($trx->tax_amount ?? round(($trx->grand_total ?? 0) * 0.1))),
                 $this->formatCurrency((int) ($trx->total_profit ?? 0)),
             ];
         })->all();

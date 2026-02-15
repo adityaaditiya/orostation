@@ -121,6 +121,7 @@ const ProfitReport = ({
 
     const stats = {
         profit_total: summary?.profit_total ?? 0,
+        tax_total: summary?.tax_total ?? 0,
         average_profit: summary?.average_profit ?? 0,
         orders_count: summary?.orders_count ?? 0,
         margin: summary?.margin ?? 0,
@@ -130,9 +131,16 @@ const ProfitReport = ({
 
     const summaryCards = [
         {
+            title: "Total Pajak",
+            value: formatCurrency(stats.tax_total),
+            description: "Akumulasi pajak 10%",
+            icon: <IconReceipt />,
+            gradient: "from-amber-500 to-orange-600",
+        },
+        {
             title: "Total Profit",
             value: formatCurrency(stats.profit_total),
-            description: "Akumulasi bersih",
+            description: "Penjualan - pajak",
             icon: <IconCoin />,
             gradient: "from-success-500 to-success-700",
         },
@@ -385,7 +393,7 @@ const ProfitReport = ({
                                                 </td>
                                                 <td className="px-4 py-4 text-right text-sm text-slate-900 dark:text-white">
                                                     {formatCurrency(
-                                                        trx.tax ??
+                                                        trx.tax_amount ??
                                                             Math.round(
                                                                 (trx.grand_total ??
                                                                     0) *
