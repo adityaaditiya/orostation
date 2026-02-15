@@ -7,6 +7,7 @@ use App\Models\CashEntry;
 use App\Models\Customer;
 use App\Models\Transaction;
 use App\Models\User;
+use App\Support\SimplePdfExport;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -177,6 +178,71 @@ class CashReportController extends Controller
     }
 
     /**
+     * Export cash flow report to PDF.
+     */
+    public function exportPdf(Request $request)
+    {
+        $defaultDate = Carbon::today()->toDateString();
+        $filters = [
+            'start_date' => $request->input('start_date') ?: $defaultDate,
+            'end_date' => $request->input('end_date') ?: $defaultDate,
+            'invoice' => $request->input('invoice'),
+            'cashier_id' => $request->input('cashier_id'),
+            'customer_id' => $request->input('customer_id'),
+            'shift' => $request->input('shift'),
+            'transaction_category' => $request->input('transaction_category'),
+        ];
+
+        $includeTransactions = empty($filters['transaction_category']) || $filters['transaction_category'] === 'transaksi_penjualan';
+        $includeCashEntries = empty($filters['transaction_category']) || in_array($filters['transaction_category'], ['uang_masuk', 'uang_keluar'], true);
+
+        $transactionQuery = $this->applyFilters(
+            Transaction::query()->notCanceled()
+                ->with(['cashier:id,name', 'customer:id,name']),
+            $filters
+        )->orderByDesc('created_at');
+
+        $cashEntryQuery = $this->applyCashEntryFilters(
+            CashEntry::query()->with(['cashier:id,name']),
+            $filters
+        )->orderByDesc('created_at');
+
+        $transactionsList = $includeTransactions
+            ? (clone $transactionQuery)->get()->map(fn ($trx) => [
+                'category' => 'Transaksi Penjualan',
+                'description' => $trx->invoice,
+                'cash_in' => (int) $trx->grand_total,
+                'cash_out' => 0,
+            ])
+            : collect();
+
+        $cashEntryList = $includeCashEntries
+            ? (clone $cashEntryQuery)->get()->map(fn ($entry) => [
+                'category' => $entry->category === 'in' ? 'Uang Masuk' : 'Uang Keluar',
+                'description' => $entry->description,
+                'cash_in' => $entry->category === 'in' ? (int) $entry->amount : 0,
+                'cash_out' => $entry->category === 'out' ? (int) $entry->amount : 0,
+            ])
+            : collect();
+
+        $mergedRows = $transactionsList
+            ->concat($cashEntryList)
+            ->values();
+
+        $headers = ['Kategori', 'Deskripsi', 'Uang Masuk', 'Uang Keluar'];
+        $rows = $mergedRows->map(function ($row) {
+            return [
+                $row['category'],
+                $row['description'],
+                $this->formatCurrency((int) ($row['cash_in'] ?? 0)),
+                $this->formatCurrency((int) ($row['cash_out'] ?? 0)),
+            ];
+        })->all();
+
+        return $this->downloadPdf('laporan-keuangan-cash.pdf', 'Laporan Keuangan Cash', $this->buildPeriodLabel($filters), $headers, $rows);
+    }
+
+    /**
      * Apply table filters.
      */
     protected function applyFilters($query, array $filters)
@@ -256,6 +322,14 @@ class CashReportController extends Controller
         return 'Rp ' . number_format($value, 0, ',', '.');
     }
 
+    protected function buildPeriodLabel(array $filters): string
+    {
+        $startDate = $filters['start_date'] ?? '-';
+        $endDate = $filters['end_date'] ?? '-';
+
+        return 'PERIODE : ' . $startDate . ' s/d ' . $endDate;
+    }
+
     protected function downloadExcel(string $filename, array $headers, array $rows)
     {
         return response()->streamDownload(function () use ($headers, $rows) {
@@ -274,6 +348,16 @@ class CashReportController extends Controller
             echo '</tbody></table>';
         }, $filename, [
             'Content-Type' => 'application/vnd.ms-excel; charset=UTF-8',
+        ]);
+    }
+
+    protected function downloadPdf(string $filename, string $title, string $period, array $headers, array $rows)
+    {
+        $pdfBinary = SimplePdfExport::make($title, $period, $headers, $rows);
+
+        return response($pdfBinary, 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
         ]);
     }
 }
