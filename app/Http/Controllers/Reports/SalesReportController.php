@@ -8,6 +8,7 @@ use App\Models\Profit;
 use App\Models\Transaction;
 use App\Models\TransactionDetail;
 use App\Models\User;
+use App\Support\SimplePdfExport;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -139,6 +140,86 @@ class SalesReportController extends Controller
     }
 
     /**
+     * Export sales report to PDF.
+     */
+    public function exportPdf(Request $request)
+    {
+        $defaultDate = Carbon::today()->toDateString();
+        $filters = [
+            'start_date' => $request->input('start_date') ?: $defaultDate,
+            'end_date' => $request->input('end_date') ?: $defaultDate,
+            'invoice' => $request->input('invoice'),
+            'cashier_id' => $request->input('cashier_id'),
+            'customer_id' => $request->input('customer_id'),
+            'shift' => $request->input('shift'),
+            'payment_method' => $request->input('payment_method'),
+        ];
+
+        $pdfFilters = [
+            ...$filters,
+            'payment_method' => null,
+        ];
+
+        $transactions = $this->applyFilters(
+            Transaction::query()->notCanceled()
+                ->with(['cashier:id,name', 'customer:id,name', 'details.product:id,title'])
+                ->withSum('details as total_items', 'qty'),
+            $pdfFilters
+        )->orderByDesc('created_at')->get();
+
+        $headers = ['No', 'Invoice', 'Produk', 'Pelanggan', 'Item', 'Diskon', 'Total'];
+
+        $sections = $transactions
+            ->groupBy(fn ($trx) => $trx->payment_method ?: 'Tanpa Metode Pembayaran')
+            ->map(function ($groupedTransactions, $paymentMethod) {
+                $itemTotal = (int) $groupedTransactions->sum(fn ($trx) => (int) ($trx->total_items ?? 0));
+                $discountTotal = (int) $groupedTransactions->sum(fn ($trx) => (int) ($trx->discount ?? 0));
+                $grandTotal = (int) $groupedTransactions->sum(fn ($trx) => (int) ($trx->grand_total ?? 0));
+
+                $rows = $groupedTransactions->values()->map(function ($trx, $index) {
+                    $productNames = $trx->details
+                        ->pluck('product.title')
+                        ->filter()
+                        ->unique()
+                        ->implode(', ');
+
+                    return [
+                        $index + 1,
+                        $trx->invoice,
+                        $productNames ?: '-',
+                        $trx->customer?->name ?? '-',
+                        (int) ($trx->total_items ?? 0),
+                        $this->formatCurrency((int) ($trx->discount ?? 0)),
+                        $this->formatCurrency((int) ($trx->grand_total ?? 0)),
+                    ];
+                })->all();
+
+                return [
+                    'title' => 'Metode Pembayaran: ' . $paymentMethod,
+                    'rows' => $rows,
+                    'footer_lines' => [
+                        'Total Transaksi Penjualan',
+                        'Item: ' . number_format($itemTotal, 0, ',', '.'),
+                        'Diskon: ' . $this->formatCurrency($discountTotal),
+                        'Total: ' . $this->formatCurrency($grandTotal),
+                    ],
+                ];
+            })
+            ->values()
+            ->all();
+
+        return $this->downloadPdf(
+            'laporan-penjualan.pdf',
+            'Laporan Penjualan',
+            $this->buildPeriodLabel($pdfFilters),
+            $headers,
+            [],
+            $sections,
+            ['Total Pembayaran: ' . $this->formatCurrency((int) $transactions->sum('grand_total'))]
+        );
+    }
+
+    /**
      * Apply table filters.
      */
     protected function applyFilters($query, array $filters)
@@ -169,6 +250,14 @@ class SalesReportController extends Controller
         return 'Rp ' . number_format($value, 0, ',', '.');
     }
 
+    protected function buildPeriodLabel(array $filters): string
+    {
+        $startDate = $filters['start_date'] ?? '-';
+        $endDate = $filters['end_date'] ?? '-';
+
+        return 'PERIODE : ' . $startDate . ' s/d ' . $endDate;
+    }
+
     protected function downloadExcel(string $filename, array $headers, array $rows)
     {
         return response()->streamDownload(function () use ($headers, $rows) {
@@ -187,6 +276,16 @@ class SalesReportController extends Controller
             echo '</tbody></table>';
         }, $filename, [
             'Content-Type' => 'application/vnd.ms-excel; charset=UTF-8',
+        ]);
+    }
+
+    protected function downloadPdf(string $filename, string $title, string $period, array $headers, array $rows, array $sections = [], array $tailLines = [])
+    {
+        $pdfBinary = SimplePdfExport::make($title, $period, $headers, $rows, $sections, $tailLines);
+
+        return response($pdfBinary, 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
         ]);
     }
 }

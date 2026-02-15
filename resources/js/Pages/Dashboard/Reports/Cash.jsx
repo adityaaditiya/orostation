@@ -9,6 +9,7 @@ import {
     IconArrowUpCircle,
     IconDatabaseOff,
     IconFileSpreadsheet,
+    IconFileTypePdf,
     IconFilter,
     IconSearch,
     IconX,
@@ -188,6 +189,10 @@ const Cash = ({ transactions, summary, filters, cashiers, customers }) => {
 
     const handleExport = () => {
         window.location.href = route("reports.cash.export", filterData);
+    };
+
+    const handleExportPdf = () => {
+        window.location.href = route("reports.cash.export-pdf", filterData);
     };
 
     return (
@@ -409,7 +414,14 @@ const Cash = ({ transactions, summary, filters, cashiers, customers }) => {
                                 </table>
                             </div>
                         </div>
-                        <div className="flex justify-end">
+                        <div className="flex justify-end gap-2">
+                            <Button
+                                type="button"
+                                label="Export PDF"
+                                icon={<IconFileTypePdf size={18} />}
+                                className="bg-red-500 hover:bg-red-600 text-white"
+                                onClick={handleExportPdf}
+                            />
                             <Button
                                 type="button"
                                 label="Export Excel"
