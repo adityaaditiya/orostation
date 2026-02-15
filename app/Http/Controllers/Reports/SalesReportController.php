@@ -155,14 +155,19 @@ class SalesReportController extends Controller
             'payment_method' => $request->input('payment_method'),
         ];
 
+        $pdfFilters = [
+            ...$filters,
+            'payment_method' => null,
+        ];
+
         $transactions = $this->applyFilters(
             Transaction::query()->notCanceled()
                 ->with(['cashier:id,name', 'customer:id,name', 'details.product:id,title'])
                 ->withSum('details as total_items', 'qty'),
-            $filters
+            $pdfFilters
         )->orderByDesc('created_at')->get();
 
-        $headers = ['No', 'Invoice', 'Produk', 'Pelanggan', 'Kasir', 'Item', 'Diskon', 'Total'];
+        $headers = ['No', 'Invoice', 'Produk', 'Pelanggan', 'Item', 'Diskon', 'Total'];
 
         $sections = $transactions
             ->groupBy(fn ($trx) => $trx->payment_method ?: 'Tanpa Metode Pembayaran')
@@ -183,7 +188,6 @@ class SalesReportController extends Controller
                         $trx->invoice,
                         $productNames ?: '-',
                         $trx->customer?->name ?? '-',
-                        $trx->cashier?->name ?? '-',
                         (int) ($trx->total_items ?? 0),
                         $this->formatCurrency((int) ($trx->discount ?? 0)),
                         $this->formatCurrency((int) ($trx->grand_total ?? 0)),
@@ -207,10 +211,11 @@ class SalesReportController extends Controller
         return $this->downloadPdf(
             'laporan-penjualan.pdf',
             'Laporan Penjualan',
-            $this->buildPeriodLabel($filters),
+            $this->buildPeriodLabel($pdfFilters),
             $headers,
             [],
-            $sections
+            $sections,
+            ['Total Pembayaran: ' . $this->formatCurrency((int) $transactions->sum('grand_total'))]
         );
     }
 
@@ -274,9 +279,9 @@ class SalesReportController extends Controller
         ]);
     }
 
-    protected function downloadPdf(string $filename, string $title, string $period, array $headers, array $rows, array $sections = [])
+    protected function downloadPdf(string $filename, string $title, string $period, array $headers, array $rows, array $sections = [], array $tailLines = [])
     {
-        $pdfBinary = SimplePdfExport::make($title, $period, $headers, $rows, $sections);
+        $pdfBinary = SimplePdfExport::make($title, $period, $headers, $rows, $sections, $tailLines);
 
         return response($pdfBinary, 200, [
             'Content-Type' => 'application/pdf',

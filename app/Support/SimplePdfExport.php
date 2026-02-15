@@ -8,8 +8,9 @@ class SimplePdfExport
      * @param  array<int, string>  $headers
      * @param  array<int, array<int, mixed>>  $rows
      * @param  array<int, array{title?:string,rows?:array<int, array<int, mixed>>,footer_lines?:array<int,string>}>  $sections
+     * @param  array<int, string>  $tailLines
      */
-    public static function make(string $title, string $period, array $headers, array $rows, array $sections = []): string
+    public static function make(string $title, string $period, array $headers, array $rows, array $sections = [], array $tailLines = []): string
     {
         $headers = array_values(array_map(fn ($header) => self::normalizeCell((string) $header), $headers));
 
@@ -21,7 +22,9 @@ class SimplePdfExport
                 'footer_lines' => [],
             ]];
 
-        return self::buildPdf($title, $period, $headers, $normalizedSections);
+        $normalizedTailLines = array_values(array_map(fn ($line) => self::normalizeCell((string) $line), $tailLines));
+
+        return self::buildPdf($title, $period, $headers, $normalizedSections, $normalizedTailLines);
     }
 
     /**
@@ -52,8 +55,9 @@ class SimplePdfExport
     /**
      * @param  array<int, string>  $headers
      * @param  array<int, array{title:string,rows:array<int, array<int, string>>,footer_lines:array<int,string>}>  $sections
+     * @param  array<int, string>  $tailLines
      */
-    protected static function buildPdf(string $title, string $period, array $headers, array $sections): string
+    protected static function buildPdf(string $title, string $period, array $headers, array $sections, array $tailLines): string
     {
         $pageWidth = 612.0;
         $pageHeight = 842.0;
@@ -153,6 +157,13 @@ class SimplePdfExport
                 $content .= self::drawText($marginLeft, $currentY - 12, $fontSize, $line);
                 $currentY -= $footerGap;
             }
+        }
+
+
+        foreach ($tailLines as $tailLine) {
+            $ensureSpace($footerGap);
+            $content .= self::drawText($marginLeft, $currentY - 12, 10, $tailLine);
+            $currentY -= $footerGap;
         }
 
         if ($content !== '') {
