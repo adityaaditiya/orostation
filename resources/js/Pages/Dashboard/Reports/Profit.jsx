@@ -140,7 +140,7 @@ const ProfitReport = ({
         {
             title: "Total Profit",
             value: formatCurrency(stats.profit_total),
-            description: "Penjualan - pajak",
+            description: "Penjualan - harga pokok - pajak",
             icon: <IconCoin />,
             gradient: "from-success-500 to-success-700",
         },

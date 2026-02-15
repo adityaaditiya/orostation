@@ -37,7 +37,7 @@ class ProfitReportController extends Controller
                 ->select('transactions.*')
                 ->selectRaw($taxExpression . ' as tax_amount')
                 ->selectRaw($costPriceExpression . ' as cost_price')
-                ->selectRaw('(grand_total - ' . $taxExpression . ') as total_profit'),
+                ->selectRaw('(grand_total - ' . $costPriceExpression . ' - ' . $taxExpression . ') as total_profit'),
             $filters
         )->orderByDesc('created_at');
 
@@ -51,7 +51,8 @@ class ProfitReportController extends Controller
 
 
         $revenueTotal = (clone $baseQuery)->sum('grand_total');
-        $profitTotal = $revenueTotal - $taxTotal;
+        $costPriceTotal = (clone $baseQuery)->sum(DB::raw($costPriceExpression));
+        $profitTotal = $revenueTotal - $costPriceTotal - $taxTotal;
 
         $ordersCount = (clone $baseQuery)->count();
 
@@ -106,7 +107,7 @@ class ProfitReportController extends Controller
                 ->select('transactions.*')
                 ->selectRaw($taxExpression . ' as tax_amount')
                 ->selectRaw($costPriceExpression . ' as cost_price')
-                ->selectRaw('(grand_total - ' . $taxExpression . ') as total_profit'),
+                ->selectRaw('(grand_total - ' . $costPriceExpression . ' - ' . $taxExpression . ') as total_profit'),
             $filters
         )->orderByDesc('created_at')->get();
 
@@ -154,7 +155,7 @@ class ProfitReportController extends Controller
                 ->select('transactions.*')
                 ->selectRaw($taxExpression . ' as tax_amount')
                 ->selectRaw($costPriceExpression . ' as cost_price')
-                ->selectRaw('(grand_total - ' . $taxExpression . ') as total_profit'),
+                ->selectRaw('(grand_total - ' . $costPriceExpression . ' - ' . $taxExpression . ') as total_profit'),
             $filters
         )->orderByDesc('created_at')->get();
 
