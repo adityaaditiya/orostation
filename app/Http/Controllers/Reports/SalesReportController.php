@@ -162,15 +162,13 @@ class SalesReportController extends Controller
             $filters
         )->orderByDesc('created_at')->get();
 
-        $headers = ['No', 'Invoice', 'Produk', 'Pelanggan', 'Kasir', 'Item', 'Diskon', 'Total'];
+        $headers = ['No', 'Invoice', 'Produk', 'Pelanggan', 'Item', 'Diskon', 'Total'];
+
+        $overallGrandTotal = (int) $transactions->sum(fn ($trx) => (int) ($trx->grand_total ?? 0));
 
         $sections = $transactions
             ->groupBy(fn ($trx) => $trx->payment_method ?: 'Tanpa Metode Pembayaran')
             ->map(function ($groupedTransactions, $paymentMethod) {
-                $itemTotal = (int) $groupedTransactions->sum(fn ($trx) => (int) ($trx->total_items ?? 0));
-                $discountTotal = (int) $groupedTransactions->sum(fn ($trx) => (int) ($trx->discount ?? 0));
-                $grandTotal = (int) $groupedTransactions->sum(fn ($trx) => (int) ($trx->grand_total ?? 0));
-
                 $rows = $groupedTransactions->values()->map(function ($trx, $index) {
                     $productNames = $trx->details
                         ->pluck('product.title')
@@ -183,7 +181,6 @@ class SalesReportController extends Controller
                         $trx->invoice,
                         $productNames ?: '-',
                         $trx->customer?->name ?? '-',
-                        $trx->cashier?->name ?? '-',
                         (int) ($trx->total_items ?? 0),
                         $this->formatCurrency((int) ($trx->discount ?? 0)),
                         $this->formatCurrency((int) ($trx->grand_total ?? 0)),
@@ -193,16 +190,25 @@ class SalesReportController extends Controller
                 return [
                     'title' => 'Metode Pembayaran: ' . $paymentMethod,
                     'rows' => $rows,
-                    'footer_lines' => [
-                        'Total Transaksi Penjualan',
-                        'Item: ' . number_format($itemTotal, 0, ',', '.'),
-                        'Diskon: ' . $this->formatCurrency($discountTotal),
-                        'Total: ' . $this->formatCurrency($grandTotal),
-                    ],
+                    'footer_lines' => [],
                 ];
             })
             ->values()
             ->all();
+
+        if (count($sections) === 0) {
+            $sections[] = [
+                'title' => '',
+                'rows' => [],
+                'footer_lines' => [],
+            ];
+        }
+
+        $lastSectionIndex = count($sections) - 1;
+        $sections[$lastSectionIndex]['footer_lines'] = [
+            'Total Transaksi Penjualan',
+            'Total Pembayaran: ' . $this->formatCurrency($overallGrandTotal),
+        ];
 
         return $this->downloadPdf(
             'laporan-penjualan.pdf',
