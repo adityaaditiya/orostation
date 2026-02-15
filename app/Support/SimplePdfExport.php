@@ -8,52 +8,91 @@ class SimplePdfExport
      * @param  array<int, string>  $headers
      * @param  array<int, array<int, mixed>>  $rows
      */
-    public static function make(string $title, array $headers, array $rows): string
+    public static function make(string $title, string $period, array $headers, array $rows): string
     {
-        $lines = [
-            $title,
-            'Dibuat: ' . now()->format('Y-m-d H:i:s'),
-            str_repeat('-', 140),
-            self::rowToLine($headers),
-            str_repeat('-', 140),
-        ];
+        $headers = array_values(array_map(fn ($header) => self::normalizeCell((string) $header), $headers));
+        $rows = array_map(fn ($row) => array_values(array_map(fn ($cell) => self::normalizeCell((string) $cell), $row)), $rows);
 
-        foreach ($rows as $row) {
-            $lines[] = self::rowToLine(array_map(fn ($cell) => (string) $cell, $row));
-        }
+        return self::buildPdf($title, $period, $headers, $rows);
+    }
+
+    /**
+     * @param  array<int, string>  $headers
+     * @param  array<int, array<int, string>>  $rows
+     */
+    protected static function buildPdf(string $title, string $period, array $headers, array $rows): string
+    {
+        $pageWidth = 612.0;
+        $pageHeight = 842.0;
+        $marginLeft = 40.0;
+        $marginRight = 40.0;
+        $marginTop = 40.0;
+        $marginBottom = 40.0;
+        $tableWidth = $pageWidth - $marginLeft - $marginRight;
+        $titleGap = 22.0;
+        $periodGap = 18.0;
+        $rowHeight = 22.0;
+
+        $colCount = max(count($headers), 1);
+        $colWidth = $tableWidth / $colCount;
+
+        $pages = [];
+        $content = '';
+        $currentY = $pageHeight - $marginTop;
+
+        $appendHeader = function () use (&$content, &$currentY, $title, $period, $marginLeft, $titleGap, $periodGap) {
+            $content .= self::drawText($marginLeft, $currentY, 14, $title);
+            $currentY -= $titleGap;
+            $content .= self::drawText($marginLeft, $currentY, 11, $period);
+            $currentY -= $periodGap;
+        };
+
+        $drawTableHeader = function () use (&$content, &$currentY, $headers, $marginLeft, $colWidth, $rowHeight) {
+            $x = $marginLeft;
+            foreach ($headers as $header) {
+                $content .= self::drawRect($x, $currentY - $rowHeight, $colWidth, $rowHeight);
+                $content .= self::drawText($x + 4, $currentY - 15, 10, self::truncateToWidth($header, $colWidth - 8));
+                $x += $colWidth;
+            }
+            $currentY -= $rowHeight;
+        };
+
+        $appendHeader();
+        $drawTableHeader();
 
         if (count($rows) === 0) {
-            $lines[] = 'Tidak ada data.';
+            $content .= self::drawText($marginLeft, $currentY - 16, 10, 'Tidak ada data.');
         }
 
-        return self::buildPdfFromLines($lines);
+        foreach ($rows as $row) {
+            if (($currentY - $rowHeight) < $marginBottom) {
+                $pages[] = $content;
+                $content = '';
+                $currentY = $pageHeight - $marginTop;
+                $appendHeader();
+                $drawTableHeader();
+            }
+
+            $x = $marginLeft;
+            foreach ($row as $cell) {
+                $content .= self::drawRect($x, $currentY - $rowHeight, $colWidth, $rowHeight);
+                $content .= self::drawText($x + 4, $currentY - 15, 10, self::truncateToWidth($cell, $colWidth - 8));
+                $x += $colWidth;
+            }
+            $currentY -= $rowHeight;
+        }
+
+        $pages[] = $content;
+
+        return self::buildPdfDocument($pages);
     }
 
     /**
-     * @param  array<int, string>  $cells
+     * @param  array<int, string>  $pageContents
      */
-    protected static function rowToLine(array $cells): string
+    protected static function buildPdfDocument(array $pageContents): string
     {
-        $normalized = array_map(function (string $value) {
-            $value = preg_replace('/\s+/', ' ', trim($value)) ?? '';
-
-            return mb_strimwidth($value, 0, 55, '...');
-        }, $cells);
-
-        return implode(' | ', $normalized);
-    }
-
-    /**
-     * @param  array<int, string>  $lines
-     */
-    protected static function buildPdfFromLines(array $lines): string
-    {
-        $maxLinesPerPage = 42;
-        $lineHeight = 16;
-
-        $pages = array_chunk($lines, $maxLinesPerPage);
         $objects = [];
-
         $fontObjectId = 1;
         $pagesObjectId = 2;
         $nextObjectId = 3;
@@ -62,17 +101,9 @@ class SimplePdfExport
 
         $pageObjectIds = [];
 
-        foreach ($pages as $pageLines) {
-            $content = "BT\n/F1 10 Tf\n1 0 0 1 40 810 Tm\n{$lineHeight} TL\n";
-
-            foreach ($pageLines as $line) {
-                $content .= '(' . self::escapePdfText(self::normalizeText($line)) . ") Tj\nT*\n";
-            }
-
-            $content .= 'ET';
-
+        foreach ($pageContents as $pageContent) {
             $contentObjectId = $nextObjectId++;
-            $objects[$contentObjectId] = "<< /Length " . strlen($content) . " >>\nstream\n{$content}\nendstream";
+            $objects[$contentObjectId] = "<< /Length " . strlen($pageContent) . " >>\nstream\n{$pageContent}\nendstream";
 
             $pageObjectId = $nextObjectId++;
             $pageObjectIds[] = $pageObjectId;
@@ -107,6 +138,35 @@ class SimplePdfExport
         $pdf .= "startxref\n{$xrefOffset}\n%%EOF";
 
         return $pdf;
+    }
+
+    protected static function drawRect(float $x, float $y, float $w, float $h): string
+    {
+        return sprintf("%.2f %.2f %.2f %.2f re S\n", $x, $y, $w, $h);
+    }
+
+    protected static function drawText(float $x, float $y, int $size, string $text): string
+    {
+        return sprintf(
+            "BT\n/F1 %d Tf\n1 0 0 1 %.2f %.2f Tm\n(%s) Tj\nET\n",
+            $size,
+            $x,
+            $y,
+            self::escapePdfText(self::normalizeText($text))
+        );
+    }
+
+    protected static function truncateToWidth(string $value, float $usableWidth): string
+    {
+        $approxCharWidth = 5.1;
+        $maxChars = max((int) floor($usableWidth / $approxCharWidth), 1);
+
+        return mb_strimwidth($value, 0, $maxChars, '...');
+    }
+
+    protected static function normalizeCell(string $value): string
+    {
+        return preg_replace('/\s+/', ' ', trim($value)) ?? '';
     }
 
     protected static function escapePdfText(string $text): string

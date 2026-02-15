@@ -136,13 +136,11 @@ class ProfitReportController extends Controller
             $filters
         )->orderByDesc('created_at')->get();
 
-        $headers = ['No', 'Invoice', 'Tanggal', 'Kasir', 'Pelanggan', 'Item', 'Penjualan', 'Profit'];
+        $headers = ['No', 'Invoice', 'Kasir', 'Pelanggan', 'Item', 'Penjualan', 'Profit'];
         $rows = $transactions->values()->map(function ($trx, $index) {
             return [
                 $index + 1,
                 $trx->invoice,
-                $trx->created_at
-                    ? Carbon::parse($trx->created_at)->format('Y-m-d H:i') : '-',
                 $trx->cashier?->name ?? '-',
                 $trx->customer?->name ?? '-',
                 (int) ($trx->total_items ?? 0),
@@ -151,7 +149,7 @@ class ProfitReportController extends Controller
             ];
         })->all();
 
-        return $this->downloadPdf('laporan-keuntungan.pdf', 'Laporan Keuntungan', $headers, $rows);
+        return $this->downloadPdf('laporan-keuntungan.pdf', 'Laporan Keuntungan', $this->buildPeriodLabel($filters), $headers, $rows);
     }
 
     protected function applyFilters($query, array $filters)
@@ -167,6 +165,14 @@ class ProfitReportController extends Controller
     protected function formatCurrency(int $value): string
     {
         return 'Rp ' . number_format($value, 0, ',', '.');
+    }
+
+    protected function buildPeriodLabel(array $filters): string
+    {
+        $startDate = $filters['start_date'] ?? '-';
+        $endDate = $filters['end_date'] ?? '-';
+
+        return 'PERIODE : ' . $startDate . ' s/d ' . $endDate;
     }
 
     protected function downloadExcel(string $filename, array $headers, array $rows)
@@ -190,9 +196,9 @@ class ProfitReportController extends Controller
         ]);
     }
 
-    protected function downloadPdf(string $filename, string $title, array $headers, array $rows)
+    protected function downloadPdf(string $filename, string $title, string $period, array $headers, array $rows)
     {
-        $pdfBinary = SimplePdfExport::make($title, $headers, $rows);
+        $pdfBinary = SimplePdfExport::make($title, $period, $headers, $rows);
 
         return response($pdfBinary, 200, [
             'Content-Type' => 'application/pdf',

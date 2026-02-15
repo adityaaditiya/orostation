@@ -239,7 +239,7 @@ class CashReportController extends Controller
             ];
         })->all();
 
-        return $this->downloadPdf('laporan-keuangan-cash.pdf', 'Laporan Keuangan Cash', $headers, $rows);
+        return $this->downloadPdf('laporan-keuangan-cash.pdf', 'Laporan Keuangan Cash', $this->buildPeriodLabel($filters), $headers, $rows);
     }
 
     /**
@@ -322,6 +322,14 @@ class CashReportController extends Controller
         return 'Rp ' . number_format($value, 0, ',', '.');
     }
 
+    protected function buildPeriodLabel(array $filters): string
+    {
+        $startDate = $filters['start_date'] ?? '-';
+        $endDate = $filters['end_date'] ?? '-';
+
+        return 'PERIODE : ' . $startDate . ' s/d ' . $endDate;
+    }
+
     protected function downloadExcel(string $filename, array $headers, array $rows)
     {
         return response()->streamDownload(function () use ($headers, $rows) {
@@ -343,9 +351,9 @@ class CashReportController extends Controller
         ]);
     }
 
-    protected function downloadPdf(string $filename, string $title, array $headers, array $rows)
+    protected function downloadPdf(string $filename, string $title, string $period, array $headers, array $rows)
     {
-        $pdfBinary = SimplePdfExport::make($title, $headers, $rows);
+        $pdfBinary = SimplePdfExport::make($title, $period, $headers, $rows);
 
         return response($pdfBinary, 200, [
             'Content-Type' => 'application/pdf',
