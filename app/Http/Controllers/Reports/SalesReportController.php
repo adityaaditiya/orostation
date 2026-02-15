@@ -163,26 +163,55 @@ class SalesReportController extends Controller
         )->orderByDesc('created_at')->get();
 
         $headers = ['No', 'Invoice', 'Produk', 'Pelanggan', 'Kasir', 'Item', 'Diskon', 'Total'];
-        $rows = $transactions->values()->map(function ($trx, $index) {
-            $productNames = $trx->details
-                ->pluck('product.title')
-                ->filter()
-                ->unique()
-                ->implode(', ');
 
-            return [
-                $index + 1,
-                $trx->invoice,
-                $productNames ?: '-',
-                $trx->customer?->name ?? '-',
-                $trx->cashier?->name ?? '-',
-                (int) ($trx->total_items ?? 0),
-                $this->formatCurrency((int) ($trx->discount ?? 0)),
-                $this->formatCurrency((int) ($trx->grand_total ?? 0)),
-            ];
-        })->all();
+        $sections = $transactions
+            ->groupBy(fn ($trx) => $trx->payment_method ?: 'Tanpa Metode Pembayaran')
+            ->map(function ($groupedTransactions, $paymentMethod) {
+                $itemTotal = (int) $groupedTransactions->sum(fn ($trx) => (int) ($trx->total_items ?? 0));
+                $discountTotal = (int) $groupedTransactions->sum(fn ($trx) => (int) ($trx->discount ?? 0));
+                $grandTotal = (int) $groupedTransactions->sum(fn ($trx) => (int) ($trx->grand_total ?? 0));
 
-        return $this->downloadPdf('laporan-penjualan.pdf', 'Laporan Penjualan', $this->buildPeriodLabel($filters), $headers, $rows);
+                $rows = $groupedTransactions->values()->map(function ($trx, $index) {
+                    $productNames = $trx->details
+                        ->pluck('product.title')
+                        ->filter()
+                        ->unique()
+                        ->implode(', ');
+
+                    return [
+                        $index + 1,
+                        $trx->invoice,
+                        $productNames ?: '-',
+                        $trx->customer?->name ?? '-',
+                        $trx->cashier?->name ?? '-',
+                        (int) ($trx->total_items ?? 0),
+                        $this->formatCurrency((int) ($trx->discount ?? 0)),
+                        $this->formatCurrency((int) ($trx->grand_total ?? 0)),
+                    ];
+                })->all();
+
+                return [
+                    'title' => 'Metode Pembayaran: ' . $paymentMethod,
+                    'rows' => $rows,
+                    'footer_lines' => [
+                        'Total Transaksi Penjualan',
+                        'Item: ' . number_format($itemTotal, 0, ',', '.'),
+                        'Diskon: ' . $this->formatCurrency($discountTotal),
+                        'Total: ' . $this->formatCurrency($grandTotal),
+                    ],
+                ];
+            })
+            ->values()
+            ->all();
+
+        return $this->downloadPdf(
+            'laporan-penjualan.pdf',
+            'Laporan Penjualan',
+            $this->buildPeriodLabel($filters),
+            $headers,
+            [],
+            $sections
+        );
     }
 
     /**
@@ -245,9 +274,9 @@ class SalesReportController extends Controller
         ]);
     }
 
-    protected function downloadPdf(string $filename, string $title, string $period, array $headers, array $rows)
+    protected function downloadPdf(string $filename, string $title, string $period, array $headers, array $rows, array $sections = [])
     {
-        $pdfBinary = SimplePdfExport::make($title, $period, $headers, $rows);
+        $pdfBinary = SimplePdfExport::make($title, $period, $headers, $rows, $sections);
 
         return response($pdfBinary, 200, [
             'Content-Type' => 'application/pdf',
