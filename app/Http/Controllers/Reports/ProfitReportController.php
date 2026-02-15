@@ -28,6 +28,7 @@ class ProfitReportController extends Controller
         ];
 
         $taxExpression = 'COALESCE(tax, ROUND(grand_total * 0.1))';
+        $costPriceExpression = '(SELECT COALESCE(SUM(transaction_details.qty * products.buy_price), 0) FROM transaction_details INNER JOIN products ON products.id = transaction_details.product_id WHERE transaction_details.transaction_id = transactions.id)';
 
         $baseQuery = $this->applyFilters(
             Transaction::query()->notCanceled()
@@ -35,7 +36,8 @@ class ProfitReportController extends Controller
                 ->withSum('details as total_items', 'qty')
                 ->select('transactions.*')
                 ->selectRaw($taxExpression . ' as tax_amount')
-                ->selectRaw('(grand_total - ' . $taxExpression . ') as total_profit'),
+                ->selectRaw($costPriceExpression . ' as cost_price')
+                ->selectRaw('(grand_total - ' . $costPriceExpression . ' - ' . $taxExpression . ') as total_profit'),
             $filters
         )->orderByDesc('created_at');
 
@@ -49,7 +51,8 @@ class ProfitReportController extends Controller
 
 
         $revenueTotal = (clone $baseQuery)->sum('grand_total');
-        $profitTotal = $revenueTotal - $taxTotal;
+        $costPriceTotal = (clone $baseQuery)->sum(DB::raw($costPriceExpression));
+        $profitTotal = $revenueTotal - $costPriceTotal - $taxTotal;
 
         $ordersCount = (clone $baseQuery)->count();
 
@@ -95,6 +98,7 @@ class ProfitReportController extends Controller
         ];
 
         $taxExpression = 'COALESCE(tax, ROUND(grand_total * 0.1))';
+        $costPriceExpression = '(SELECT COALESCE(SUM(transaction_details.qty * products.buy_price), 0) FROM transaction_details INNER JOIN products ON products.id = transaction_details.product_id WHERE transaction_details.transaction_id = transactions.id)';
 
         $transactions = $this->applyFilters(
             Transaction::query()->notCanceled()
@@ -102,11 +106,12 @@ class ProfitReportController extends Controller
                 ->withSum('details as total_items', 'qty')
                 ->select('transactions.*')
                 ->selectRaw($taxExpression . ' as tax_amount')
-                ->selectRaw('(grand_total - ' . $taxExpression . ') as total_profit'),
+                ->selectRaw($costPriceExpression . ' as cost_price')
+                ->selectRaw('(grand_total - ' . $costPriceExpression . ' - ' . $taxExpression . ') as total_profit'),
             $filters
         )->orderByDesc('created_at')->get();
 
-        $headers = ['No', 'Invoice', 'Tanggal', 'Kasir', 'Pelanggan', 'Item', 'Penjualan', 'Pajak', 'Profit'];
+        $headers = ['No', 'Invoice', 'Tanggal', 'Kasir', 'Pelanggan', 'Harga Pokok', 'Item', 'Penjualan', 'Pajak', 'Profit'];
         $rows = $transactions->values()->map(function ($trx, $index) {
             return [
                 $index + 1,
@@ -115,6 +120,7 @@ class ProfitReportController extends Controller
                     ? Carbon::parse($trx->created_at)->format('Y-m-d H:i') : '-',
                 $trx->cashier?->name ?? '-',
                 $trx->customer?->name ?? '-',
+                $this->formatCurrency((int) ($trx->cost_price ?? 0)),
                 (int) ($trx->total_items ?? 0),
                 $this->formatCurrency((int) ($trx->grand_total ?? 0)),
                 $this->formatCurrency((int) ($trx->tax_amount ?? round(($trx->grand_total ?? 0) * 0.1))),
@@ -140,6 +146,7 @@ class ProfitReportController extends Controller
         ];
 
         $taxExpression = 'COALESCE(tax, ROUND(grand_total * 0.1))';
+        $costPriceExpression = '(SELECT COALESCE(SUM(transaction_details.qty * products.buy_price), 0) FROM transaction_details INNER JOIN products ON products.id = transaction_details.product_id WHERE transaction_details.transaction_id = transactions.id)';
 
         $transactions = $this->applyFilters(
             Transaction::query()->notCanceled()
@@ -147,17 +154,19 @@ class ProfitReportController extends Controller
                 ->withSum('details as total_items', 'qty')
                 ->select('transactions.*')
                 ->selectRaw($taxExpression . ' as tax_amount')
-                ->selectRaw('(grand_total - ' . $taxExpression . ') as total_profit'),
+                ->selectRaw($costPriceExpression . ' as cost_price')
+                ->selectRaw('(grand_total - ' . $costPriceExpression . ' - ' . $taxExpression . ') as total_profit'),
             $filters
         )->orderByDesc('created_at')->get();
 
-        $headers = ['No', 'Invoice', 'Kasir', 'Pelanggan', 'Item', 'Penjualan', 'Pajak', 'Profit'];
+        $headers = ['No', 'Invoice', 'Kasir', 'Pelanggan', 'Harga Pokok', 'Item', 'Penjualan', 'Pajak', 'Profit'];
         $rows = $transactions->values()->map(function ($trx, $index) {
             return [
                 $index + 1,
                 $trx->invoice,
                 $trx->cashier?->name ?? '-',
                 $trx->customer?->name ?? '-',
+                $this->formatCurrency((int) ($trx->cost_price ?? 0)),
                 (int) ($trx->total_items ?? 0),
                 $this->formatCurrency((int) ($trx->grand_total ?? 0)),
                 $this->formatCurrency((int) ($trx->tax_amount ?? round(($trx->grand_total ?? 0) * 0.1))),
