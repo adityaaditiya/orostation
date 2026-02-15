@@ -484,6 +484,7 @@ class TransactionController extends Controller
                 'change'         => $changeAmount,
                 'discount'       => $request->discount,
                 'grand_total'    => $request->grand_total,
+                'tax'            => (int) round($request->grand_total * 0.1),
                 'payment_method' => $manualPaymentMethod ?: ($paymentGateway ?: 'cash'),
                 'payment_status' => ($isCashPayment || $manualPaymentMethod) ? 'paid' : 'pending',
             ]);

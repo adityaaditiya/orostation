@@ -28,6 +28,7 @@ class Transaction extends Model
         'change',
         'discount',
         'grand_total',
+        'tax',
         'payment_method',
         'payment_status',
         'payment_reference',
