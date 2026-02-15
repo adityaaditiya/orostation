@@ -340,15 +340,7 @@ const SoldItems = ({ soldItems, summary, filters, cashiers, customers }) => {
                                 </tbody>
                             </table>
                         </div>
-                        <div className="flex justify-end">
-                            <Button
-                                type="button"
-                                label="Export Excel"
-                                icon={<IconFileSpreadsheet size={18} />}
-                                className="bg-success-500 hover:bg-success-600 text-white"
-                                onClick={handleExport}
-                            />
-                        </div>
+                        
                     </div>
                 ) : (
                     <div className="flex flex-col items-center justify-center py-16 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800">
@@ -364,6 +356,15 @@ const SoldItems = ({ soldItems, summary, filters, cashiers, customers }) => {
                     </div>
                 )}
 
+                        <div className="flex justify-end">
+                            <Button
+                                type="button"
+                                label="Export Excel"
+                                icon={<IconFileSpreadsheet size={18} />}
+                                className="bg-success-500 hover:bg-success-600 text-white"
+                                onClick={handleExport}
+                            />
+                        </div>
                 {paginationLinks.length > 3 && <Pagination links={paginationLinks} />}
             </div>
         </>

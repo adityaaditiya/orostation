@@ -428,9 +428,9 @@ const Sales = ({
                                         <th className="px-4 py-4 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">
                                             Pelanggan
                                             </th>
-                                            <th className="px-4 py-4 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">
+                                            {/* <th className="px-4 py-4 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">
                                                 Kasir
-                                            </th>
+                                            </th> */}
                                             <th className="px-4 py-4 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">
                                                 Metode Pembayaran
                                             </th>
@@ -488,9 +488,9 @@ const Sales = ({
                                                 <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-400">
                                                     {trx.customer?.name ?? "-"}
                                                 </td>
-                                                <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-400">
+                                                {/* <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-400">
                                                     {trx.cashier?.name ?? "-"}
-                                                </td>
+                                                </td> */}
                                                 <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-400">
                                                     {trx.payment_method ?? "-"}
                                                 </td>

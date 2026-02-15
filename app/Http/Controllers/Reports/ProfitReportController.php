@@ -11,6 +11,8 @@ use App\Support\SimplePdfExport;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Illuminate\Support\Facades\DB;
+
 
 class ProfitReportController extends Controller
 {
@@ -43,7 +45,8 @@ class ProfitReportController extends Controller
 
         $transactionIds = (clone $baseQuery)->pluck('id');
 
-        $taxTotal = (clone $baseQuery)->sum('tax_amount');
+        $taxTotal = (clone $baseQuery)->sum(DB::raw($taxExpression));
+
 
         $revenueTotal = (clone $baseQuery)->sum('grand_total');
         $profitTotal = $revenueTotal - $taxTotal;

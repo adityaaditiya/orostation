@@ -69,37 +69,50 @@ class SoldItemsReportController extends Controller
      * Export sold items report to Excel.
      */
     public function export(Request $request)
-    {
-        $defaultDate = Carbon::today()->toDateString();
-        $filters = [
-            'start_date' => $request->input('start_date') ?: $defaultDate,
-            'end_date' => $request->input('end_date') ?: $defaultDate,
-            'invoice' => $request->input('invoice'),
-            'cashier_id' => $request->input('cashier_id'),
-            'customer_id' => $request->input('customer_id'),
+{
+    $defaultDate = Carbon::today()->toDateString();
+    $filters = [
+        'start_date' => $request->input('start_date') ?: $defaultDate,
+        'end_date' => $request->input('end_date') ?: $defaultDate,
+        'invoice' => $request->input('invoice'),
+        'cashier_id' => $request->input('cashier_id'),
+        'customer_id' => $request->input('customer_id'),
+    ];
+
+    $baseQuery = $this->applyFilters(
+        TransactionDetail::query()
+            ->with([
+                'product:id,title',
+                'transaction:id,invoice,created_at,cashier_id,customer_id',
+                'transaction.cashier:id,name',
+                'transaction.customer:id,name',
+            ])
+            ->whereHas('transaction', fn ($query) => $query->notCanceled()),
+        $filters
+    );
+
+    // export harus ambil semua data (get), bukan paginate
+    $soldItems = (clone $baseQuery)
+        ->orderByDesc('id')
+        ->get();
+
+    $headers = ['No', 'Tanggal', 'Invoice', 'Produk Terjual', 'Terjual', 'Pelanggan', 'Kasir'];
+    $rows = $soldItems->values()->map(function ($item, $index) {
+        return [
+            $index + 1,
+            $item->transaction?->created_at
+                ? Carbon::parse($item->transaction->created_at)->format('Y-m-d H:i')
+                : '-',
+            $item->transaction?->invoice ?? '-',
+            $item->product?->title ?? '-',
+            (int) ($item->qty ?? 0),
+            $item->transaction?->customer?->name ?? '-',
+            $item->transaction?->cashier?->name ?? '-',
         ];
+    })->all();
 
-        $soldItems = (clone $baseQuery)
-    ->orderByDesc('id')
-    ->paginate(10)
-    ->withQueryString();
-
-        $headers = ['No', 'Tanggal', 'Invoice', 'Produk Terjual', 'Terjual', 'Pelanggan', 'Kasir'];
-        $rows = $soldItems->values()->map(function ($item, $index) {
-            return [
-                $index + 1,
-                $item->transaction?->created_at
-                    ? Carbon::parse($item->transaction->created_at)->format('Y-m-d H:i') : '-',
-                $item->transaction?->invoice ?? '-',
-                $item->product?->title ?? '-',
-                (int) ($item->qty ?? 0),
-                $item->transaction?->customer?->name ?? '-',
-                $item->transaction?->cashier?->name ?? '-',
-            ];
-        })->all();
-
-        return $this->downloadExcel('laporan-barang-terjual.xls', $headers, $rows);
-    }
+    return $this->downloadExcel('laporan-barang-terjual.xls', $headers, $rows);
+}
 
     protected function applyFilters($query, array $filters)
     {

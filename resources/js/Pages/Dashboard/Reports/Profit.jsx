@@ -336,15 +336,15 @@ const ProfitReport = ({
                                             <th className="px-4 py-4 text-left text-xs font-semibold text-slate-500 uppercase">
                                                 Invoice
                                             </th>
-                                            <th className="px-4 py-4 text-left text-xs font-semibold text-slate-500 uppercase">
+                                            {/* <th className="px-4 py-4 text-left text-xs font-semibold text-slate-500 uppercase">
                                                 Kasir
-                                            </th>
+                                            </th> */}
                                             <th className="px-4 py-4 text-left text-xs font-semibold text-slate-500 uppercase">
                                                 Pelanggan
                                             </th>
-                                            <th className="px-4 py-4 text-center text-xs font-semibold text-slate-500 uppercase">
+                                            {/* <th className="px-4 py-4 text-center text-xs font-semibold text-slate-500 uppercase">
                                                 Item
-                                            </th>
+                                            </th> */}
                                             <th className="px-4 py-4 text-right text-xs font-semibold text-slate-500 uppercase">
                                                 Penjualan
                                             </th>
@@ -375,17 +375,17 @@ const ProfitReport = ({
                                                     {trx.invoice}
                                                 </td>
                                                 
-                                                <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-400">
+                                                {/* <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-400">
                                                     {trx.cashier?.name ?? "-"}
-                                                </td>
+                                                </td> */}
                                                 <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-400">
                                                     {trx.customer?.name ?? "-"}
                                                 </td>
-                                                <td className="px-4 py-4 text-center">
+                                                {/* <td className="px-4 py-4 text-center">
                                                     <span className="px-2 py-0.5 text-xs font-medium bg-primary-100 dark:bg-primary-900/50 text-primary-700 dark:text-primary-400 rounded-full">
                                                         {trx.total_items ?? 0}
                                                     </span>
-                                                </td>
+                                                </td> */}
                                                 <td className="px-4 py-4 text-right text-sm text-slate-900 dark:text-white">
                                                     {formatCurrency(
                                                         trx.grand_total ?? 0
