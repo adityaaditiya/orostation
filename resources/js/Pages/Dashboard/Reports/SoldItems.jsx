@@ -302,6 +302,7 @@ const SoldItems = ({ soldItems, summary, filters, cashiers, customers }) => {
                                         <th className="px-4 py-4 text-left text-xs font-semibold text-slate-500 uppercase">Tanggal</th>
                                         <th className="px-4 py-4 text-left text-xs font-semibold text-slate-500 uppercase">Invoice</th>
                                         <th className="px-4 py-4 text-left text-xs font-semibold text-slate-500 uppercase">Produk Terjual</th>
+                                        <th className="px-4 py-4 text-left text-xs font-semibold text-slate-500 uppercase">Harga / Produk</th>
                                         <th className="px-4 py-4 text-left text-xs font-semibold text-slate-500 uppercase">Terjual</th>
                                         <th className="px-4 py-4 text-left text-xs font-semibold text-slate-500 uppercase">Pelanggan</th>
                                         <th className="px-4 py-4 text-left text-xs font-semibold text-slate-500 uppercase">Kasir</th>
@@ -322,6 +323,9 @@ const SoldItems = ({ soldItems, summary, filters, cashiers, customers }) => {
                                             </td>
                                             <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-400">
                                                 {item.product?.title ?? "-"}
+                                            </td>
+                                            <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-400">
+                                                {formatCurrency(item.price ?? 0)}
                                             </td>
                                             <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-400">
                                                 {item.qty ?? 0}
