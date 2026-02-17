@@ -13,6 +13,7 @@ import {
     IconShoppingBag,
     IconCoin,
     IconFileSpreadsheet,
+    IconFileTypePdf,
 } from "@tabler/icons-react";
 
 const SummaryCard = ({ icon, title, value, description, gradient }) => (
@@ -147,6 +148,10 @@ const SoldItems = ({ soldItems, summary, filters, cashiers, customers }) => {
 
     const handleExport = () => {
         window.location.href = route("reports.sold-items.export", filterData);
+    };
+
+    const handleExportPdf = () => {
+        window.location.href = route("reports.sold-items.export-pdf", filterData);
     };
 
     const summaryCards = [
@@ -346,7 +351,23 @@ const SoldItems = ({ soldItems, summary, filters, cashiers, customers }) => {
                                 </tbody>
                             </table>
                         </div>
-                        
+
+                        <div className="flex justify-end gap-2 p-4 border-t border-slate-100 dark:border-slate-800">
+                            <Button
+                                type="button"
+                                label="Export PDF"
+                                icon={<IconFileTypePdf size={18} />}
+                                className="bg-danger-500 hover:bg-danger-600 text-white"
+                                onClick={handleExportPdf}
+                            />
+                            <Button
+                                type="button"
+                                label="Export Excel"
+                                icon={<IconFileSpreadsheet size={18} />}
+                                className="bg-success-500 hover:bg-success-600 text-white"
+                                onClick={handleExport}
+                            />
+                        </div>
                     </div>
                 ) : (
                     <div className="flex flex-col items-center justify-center py-16 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800">
@@ -362,15 +383,6 @@ const SoldItems = ({ soldItems, summary, filters, cashiers, customers }) => {
                     </div>
                 )}
 
-                        <div className="flex justify-end">
-                            <Button
-                                type="button"
-                                label="Export Excel"
-                                icon={<IconFileSpreadsheet size={18} />}
-                                className="bg-success-500 hover:bg-success-600 text-white"
-                                onClick={handleExport}
-                            />
-                        </div>
                 {paginationLinks.length > 3 && <Pagination links={paginationLinks} />}
             </div>
         </>
