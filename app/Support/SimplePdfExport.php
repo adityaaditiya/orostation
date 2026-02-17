@@ -7,7 +7,7 @@ class SimplePdfExport
     /**
      * @param  array<int, string>  $headers
      * @param  array<int, array<int, mixed>>  $rows
-     * @param  array<int, array{title?:string,rows?:array<int, array<int, mixed>>,footer_lines?:array<int,string>}>  $sections
+     * @param  array<int, array{title?:string,rows?:array<int, array<int, mixed>>,footer_lines?:array<int,string>,column_widths?:array<int,float|int>}>  $sections
      */
     public static function make(string $title, string $period, array $headers, array $rows, array $sections = [], string $orientation = 'portrait'): string
     {
@@ -19,24 +19,27 @@ class SimplePdfExport
                 'title' => '',
                 'rows' => array_map(fn ($row) => self::normalizeRow((array) $row), $rows),
                 'footer_lines' => [],
+                'column_widths' => [],
             ]];
 
         return self::buildPdf($title, $period, $headers, $normalizedSections, $orientation);
     }
 
     /**
-     * @param  array{title?:string,rows?:array<int, array<int, mixed>>,footer_lines?:array<int,string>}  $section
-     * @return array{title:string,rows:array<int, array<int, string>>,footer_lines:array<int,string>}
+     * @param  array{title?:string,rows?:array<int, array<int, mixed>>,footer_lines?:array<int,string>,column_widths?:array<int,float|int>}  $section
+     * @return array{title:string,rows:array<int, array<int, string>>,footer_lines:array<int,string>,column_widths:array<int,float>}
      */
     protected static function normalizeSection(array $section): array
     {
         $rows = array_map(fn ($row) => self::normalizeRow((array) $row), (array) ($section['rows'] ?? []));
         $footerLines = array_values(array_map(fn ($line) => self::normalizeCell((string) $line), (array) ($section['footer_lines'] ?? [])));
+        $columnWidths = array_values(array_map(fn ($width) => max((float) $width, 0.0), (array) ($section['column_widths'] ?? [])));
 
         return [
             'title' => self::normalizeCell((string) ($section['title'] ?? '')),
             'rows' => $rows,
             'footer_lines' => $footerLines,
+            'column_widths' => $columnWidths,
         ];
     }
 
@@ -51,7 +54,7 @@ class SimplePdfExport
 
     /**
      * @param  array<int, string>  $headers
-     * @param  array<int, array{title:string,rows:array<int, array<int, string>>,footer_lines:array<int,string>}>  $sections
+     * @param  array<int, array{title:string,rows:array<int, array<int, string>>,footer_lines:array<int,string>,column_widths:array<int,float>}>  $sections
      */
     protected static function buildPdf(string $title, string $period, array $headers, array $sections, string $orientation): string
     {
@@ -72,7 +75,6 @@ class SimplePdfExport
         $footerGap = 14.0;
 
         $colCount = max(count($headers), 1);
-        $colWidth = $tableWidth / $colCount;
 
         $pages = [];
         $content = '';
@@ -101,12 +103,13 @@ class SimplePdfExport
             }
         };
 
-        $drawTableHeader = function () use (&$content, &$currentY, $headers, $marginLeft, $colWidth, $rowHeight) {
+        $drawTableHeader = function (array $columnWidths) use (&$content, &$currentY, $headers, $marginLeft, $rowHeight) {
             $x = $marginLeft;
-            foreach ($headers as $header) {
-                $content .= self::drawRect($x, $currentY - $rowHeight, $colWidth, $rowHeight);
-                $content .= self::drawText($x + 4, $currentY - 15, 10, self::truncateToWidth($header, $colWidth - 8));
-                $x += $colWidth;
+            foreach ($headers as $index => $header) {
+                $width = $columnWidths[$index] ?? ($columnWidths[count($columnWidths) - 1] ?? 0.0);
+                $content .= self::drawRect($x, $currentY - $rowHeight, $width, $rowHeight);
+                $content .= self::drawText($x + 4, $currentY - 15, 10, self::truncateToWidth($header, $width - 8));
+                $x += $width;
             }
             $currentY -= $rowHeight;
         };
@@ -125,8 +128,15 @@ class SimplePdfExport
                 $currentY -= $sectionTitleGap;
             }
 
+            $weights = $section['column_widths'];
+            if (count($weights) !== $colCount || array_sum($weights) <= 0) {
+                $weights = array_fill(0, $colCount, 1.0);
+            }
+            $weightSum = array_sum($weights);
+            $columnWidths = array_map(fn ($weight) => ($tableWidth * $weight) / $weightSum, $weights);
+
             $ensureSpace($rowHeight);
-            $drawTableHeader();
+            $drawTableHeader($columnWidths);
 
             if (count($section['rows']) === 0) {
                 $ensureSpace(16.0);
@@ -140,9 +150,10 @@ class SimplePdfExport
                 $x = $marginLeft;
                 for ($i = 0; $i < $colCount; $i++) {
                     $cell = $row[$i] ?? '';
-                    $content .= self::drawRect($x, $currentY - $rowHeight, $colWidth, $rowHeight);
-                    $content .= self::drawText($x + 4, $currentY - 15, 10, self::truncateToWidth($cell, $colWidth - 8));
-                    $x += $colWidth;
+                    $width = $columnWidths[$i] ?? ($columnWidths[count($columnWidths) - 1] ?? 0.0);
+                    $content .= self::drawRect($x, $currentY - $rowHeight, $width, $rowHeight);
+                    $content .= self::drawText($x + 4, $currentY - 15, 10, self::truncateToWidth($cell, $width - 8));
+                    $x += $width;
                 }
 
                 $currentY -= $rowHeight;

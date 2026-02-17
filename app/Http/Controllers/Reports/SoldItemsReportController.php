@@ -40,8 +40,8 @@ class SoldItemsReportController extends Controller
 );
 
         $soldItems = (clone $baseQuery)
-            ->orderByRaw('(SELECT title FROM products WHERE products.id = transaction_details.product_id) asc')
-            ->orderBy('transaction_details.id')
+            ->orderByRaw('(SELECT created_at FROM transactions WHERE transactions.id = transaction_details.transaction_id) desc')
+            ->orderByDesc('transaction_details.id')
             ->paginate(10)
             ->withQueryString();
 
@@ -173,7 +173,8 @@ class SoldItemsReportController extends Controller
                 'Total Barang Terjual: ' . $totalItems,
                 'Total Harga: ' . $this->formatCurrency($totalPrice),
             ],
-            'landscape'
+            'landscape',
+            [0.55, 1.35, 3.25, 0.85, 1.5, 2.0]
         );
     }
 
@@ -221,12 +222,13 @@ class SoldItemsReportController extends Controller
         return 'PERIODE : ' . $startDate . ' s/d ' . $endDate;
     }
 
-    protected function downloadPdf(string $filename, string $title, string $period, array $headers, array $rows, array $footerLines = [], string $orientation = 'portrait')
+    protected function downloadPdf(string $filename, string $title, string $period, array $headers, array $rows, array $footerLines = [], string $orientation = 'portrait', array $columnWidths = [])
     {
         $pdfBinary = SimplePdfExport::make($title, $period, $headers, [], [[
             "title" => "",
             "rows" => $rows,
             "footer_lines" => $footerLines,
+            "column_widths" => $columnWidths,
         ]], $orientation);
 
         return response($pdfBinary, 200, [
