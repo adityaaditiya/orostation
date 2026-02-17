@@ -40,6 +40,8 @@ class SoldItemsReportController extends Controller
 );
 
         $soldItems = (clone $baseQuery)
+            ->orderByRaw('(SELECT title FROM products WHERE products.id = transaction_details.product_id) asc')
+            ->orderBy('transaction_details.id')
             ->paginate(10)
             ->withQueryString();
 
@@ -85,19 +87,20 @@ class SoldItemsReportController extends Controller
                 ->with([
                     'product:id,title',
                     'transaction:id,invoice,created_at,cashier_id,customer_id',
-                    'transaction.cashier:id,name',
                     'transaction.customer:id,name',
                 ])
+                ->leftJoin('products', 'products.id', '=', 'transaction_details.product_id')
+                ->select('transaction_details.*')
                 ->whereHas('transaction', fn ($query) => $query->notCanceled()),
             $filters
         );
 
-        // export harus ambil semua data (get), bukan paginate
         $soldItems = (clone $baseQuery)
-            ->orderByDesc('id')
+            ->orderBy('products.title')
+            ->orderBy('transaction_details.id')
             ->get();
 
-        $headers = ['No', 'Tanggal', 'Invoice', 'Produk Terjual', 'Terjual', 'Pelanggan', 'Kasir'];
+        $headers = ['No', 'Tanggal', 'Invoice', 'Produk Terjual', 'Terjual', 'Harga', 'Pelanggan'];
         $rows = $soldItems->values()->map(function ($item, $index) {
             return [
                 $index + 1,
@@ -107,8 +110,8 @@ class SoldItemsReportController extends Controller
                 $item->transaction?->invoice ?? '-',
                 $item->product?->title ?? '-',
                 (int) ($item->qty ?? 0),
+                $this->formatCurrency((int) ($item->price ?? 0)),
                 $item->transaction?->customer?->name ?? '-',
-                $item->transaction?->cashier?->name ?? '-',
             ];
         })->all();
 
@@ -134,33 +137,42 @@ class SoldItemsReportController extends Controller
                 ->with([
                     'product:id,title',
                     'transaction:id,invoice,created_at,cashier_id,customer_id',
-                    'transaction.cashier:id,name',
                     'transaction.customer:id,name',
                 ])
+                ->leftJoin('products', 'products.id', '=', 'transaction_details.product_id')
+                ->select('transaction_details.*')
                 ->whereHas('transaction', fn ($query) => $query->notCanceled()),
             $filters
         )
-            ->orderByDesc('id')
+            ->orderBy('products.title')
+            ->orderBy('transaction_details.id')
             ->get();
 
-        $headers = ['No', 'Invoice', 'Produk Terjual', 'Terjual', 'Pelanggan', 'Kasir'];
+        $headers = ['No', 'Invoice', 'Produk Terjual', 'Terjual', 'Harga', 'Pelanggan'];
         $rows = $soldItems->values()->map(function ($item, $index) {
             return [
                 $index + 1,
                 $item->transaction?->invoice ?? '-',
                 $item->product?->title ?? '-',
                 (int) ($item->qty ?? 0),
+                $this->formatCurrency((int) ($item->price ?? 0)),
                 $item->transaction?->customer?->name ?? '-',
-                $item->transaction?->cashier?->name ?? '-',
             ];
         })->all();
+
+        $totalItems = (int) $soldItems->sum(fn ($item) => (int) ($item->qty ?? 0));
+        $totalPrice = (int) $soldItems->sum(fn ($item) => ((int) ($item->qty ?? 0)) * ((int) ($item->price ?? 0)));
 
         return $this->downloadPdf(
             'laporan-barang-terjual.pdf',
             'Laporan Barang Terjual',
             $this->buildPeriodLabel($filters),
             $headers,
-            $rows
+            $rows,
+            [
+                'Total Barang Terjual: ' . $totalItems,
+                'Total Harga: ' . $this->formatCurrency($totalPrice),
+            ]
         );
     }
 
@@ -195,6 +207,11 @@ class SoldItemsReportController extends Controller
         ]);
     }
 
+    protected function formatCurrency(int $value): string
+    {
+        return "Rp " . number_format($value, 0, ",", ".");
+    }
+
     protected function buildPeriodLabel(array $filters): string
     {
         $startDate = $filters['start_date'] ?? '-';
@@ -203,9 +220,13 @@ class SoldItemsReportController extends Controller
         return 'PERIODE : ' . $startDate . ' s/d ' . $endDate;
     }
 
-    protected function downloadPdf(string $filename, string $title, string $period, array $headers, array $rows)
+    protected function downloadPdf(string $filename, string $title, string $period, array $headers, array $rows, array $footerLines = [])
     {
-        $pdfBinary = SimplePdfExport::make($title, $period, $headers, $rows);
+        $pdfBinary = SimplePdfExport::make($title, $period, $headers, [], [[
+            "title" => "",
+            "rows" => $rows,
+            "footer_lines" => $footerLines,
+        ]]);
 
         return response($pdfBinary, 200, [
             'Content-Type' => 'application/pdf',
