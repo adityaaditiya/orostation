@@ -9,7 +9,7 @@ class SimplePdfExport
      * @param  array<int, array<int, mixed>>  $rows
      * @param  array<int, array{title?:string,rows?:array<int, array<int, mixed>>,footer_lines?:array<int,string>}>  $sections
      */
-    public static function make(string $title, string $period, array $headers, array $rows, array $sections = []): string
+    public static function make(string $title, string $period, array $headers, array $rows, array $sections = [], string $orientation = 'portrait'): string
     {
         $headers = array_values(array_map(fn ($header) => self::normalizeCell((string) $header), $headers));
 
@@ -21,7 +21,7 @@ class SimplePdfExport
                 'footer_lines' => [],
             ]];
 
-        return self::buildPdf($title, $period, $headers, $normalizedSections);
+        return self::buildPdf($title, $period, $headers, $normalizedSections, $orientation);
     }
 
     /**
@@ -53,10 +53,11 @@ class SimplePdfExport
      * @param  array<int, string>  $headers
      * @param  array<int, array{title:string,rows:array<int, array<int, string>>,footer_lines:array<int,string>}>  $sections
      */
-    protected static function buildPdf(string $title, string $period, array $headers, array $sections): string
+    protected static function buildPdf(string $title, string $period, array $headers, array $sections, string $orientation): string
     {
-        $pageWidth = 612.0;
-        $pageHeight = 842.0;
+        $isLandscape = strtolower($orientation) === 'landscape';
+        $pageWidth = $isLandscape ? 842.0 : 612.0;
+        $pageHeight = $isLandscape ? 612.0 : 842.0;
         $marginLeft = 40.0;
         $marginRight = 40.0;
         $marginTop = 40.0;
@@ -159,13 +160,13 @@ class SimplePdfExport
             $pages[] = $content;
         }
 
-        return self::buildPdfDocument($pages);
+        return self::buildPdfDocument($pages, $pageWidth, $pageHeight);
     }
 
     /**
      * @param  array<int, string>  $pageContents
      */
-    protected static function buildPdfDocument(array $pageContents): string
+    protected static function buildPdfDocument(array $pageContents, float $pageWidth = 612.0, float $pageHeight = 842.0): string
     {
         $objects = [];
         $fontObjectId = 1;
@@ -182,7 +183,7 @@ class SimplePdfExport
 
             $pageObjectId = $nextObjectId++;
             $pageObjectIds[] = $pageObjectId;
-            $objects[$pageObjectId] = "<< /Type /Page /Parent {$pagesObjectId} 0 R /MediaBox [0 0 612 842] /Resources << /Font << /F1 {$fontObjectId} 0 R >> >> /Contents {$contentObjectId} 0 R >>";
+            $objects[$pageObjectId] = "<< /Type /Page /Parent {$pagesObjectId} 0 R /MediaBox [0 0 {$pageWidth} {$pageHeight}] /Resources << /Font << /F1 {$fontObjectId} 0 R >> >> /Contents {$contentObjectId} 0 R >>";
         }
 
         $kids = implode(' ', array_map(fn ($id) => "{$id} 0 R", $pageObjectIds));

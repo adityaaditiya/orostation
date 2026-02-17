@@ -161,7 +161,7 @@ class SoldItemsReportController extends Controller
         })->all();
 
         $totalItems = (int) $soldItems->sum(fn ($item) => (int) ($item->qty ?? 0));
-        $totalPrice = (int) $soldItems->sum(fn ($item) => ((int) ($item->qty ?? 0)) * ((int) ($item->price ?? 0)));
+        $totalPrice = (int) $soldItems->sum(fn ($item) => (int) ($item->price ?? 0));
 
         return $this->downloadPdf(
             'laporan-barang-terjual.pdf',
@@ -172,7 +172,8 @@ class SoldItemsReportController extends Controller
             [
                 'Total Barang Terjual: ' . $totalItems,
                 'Total Harga: ' . $this->formatCurrency($totalPrice),
-            ]
+            ],
+            'landscape'
         );
     }
 
@@ -220,13 +221,13 @@ class SoldItemsReportController extends Controller
         return 'PERIODE : ' . $startDate . ' s/d ' . $endDate;
     }
 
-    protected function downloadPdf(string $filename, string $title, string $period, array $headers, array $rows, array $footerLines = [])
+    protected function downloadPdf(string $filename, string $title, string $period, array $headers, array $rows, array $footerLines = [], string $orientation = 'portrait')
     {
         $pdfBinary = SimplePdfExport::make($title, $period, $headers, [], [[
             "title" => "",
             "rows" => $rows,
             "footer_lines" => $footerLines,
-        ]]);
+        ]], $orientation);
 
         return response($pdfBinary, 200, [
             'Content-Type' => 'application/pdf',
