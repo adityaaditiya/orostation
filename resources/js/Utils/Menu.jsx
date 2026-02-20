@@ -70,6 +70,19 @@ function Menu() {
                 },
             ],
         },
+
+        {
+            title: "Pilates Studio Control",
+            details: [
+                {
+                    title: "Kelola Menu Welcome",
+                    href: route("studio-pages.index"),
+                    active: url.startsWith("/dashboard/studio-pages"),
+                    icon: <IconSchool size={20} strokeWidth={1.5} />,
+                    permissions: true,
+                },
+            ],
+        },
         {
             title: "Transaksi",
             details: [
