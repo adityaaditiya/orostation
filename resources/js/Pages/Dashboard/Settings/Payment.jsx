@@ -8,6 +8,7 @@ import {
     IconDeviceFloppy,
     IconBrandStripe,
     IconCash,
+    IconPlus,
 } from "@tabler/icons-react";
 import toast from "react-hot-toast";
 
@@ -109,9 +110,18 @@ export default function Payment({ setting, supportedGateways = [] }) {
 
                 {/* Manual Payment Methods */}
                 <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 space-y-4">
-                    <div className="flex items-center gap-2 text-sm font-semibold text-slate-700 dark:text-slate-300">
-                        <IconCreditCard size={18} />
-                        Metode Pembayaran Manual
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2 text-sm font-semibold text-slate-700 dark:text-slate-300">
+                            <IconCreditCard size={18} />
+                            Metode Pembayaran Manual
+                        </div>
+                        <button
+                            type="button"
+                            className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                            aria-label="Tambah data metode pembayaran manual"
+                        >
+                            <IconPlus size={16} />
+                        </button>
                     </div>
                     <p className="text-sm text-slate-500 dark:text-slate-400">
                         Aktifkan metode manual yang tersedia pada menu
