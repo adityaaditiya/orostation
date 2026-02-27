@@ -38,6 +38,7 @@ export default function Print({ transaction }) {
         bank_transfer: "Transfer Bank",
         ayo: "AYO",
         credit_card: "Credit Card",
+        debit: "Debit",
         midtrans: "Midtrans",
         xendit: "Xendit",
     };
