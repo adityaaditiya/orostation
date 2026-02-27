@@ -194,6 +194,50 @@ class TransactionFlowTest extends TestCase
             && $request['transaction_details']['order_id'] === $transaction->invoice);
     }
 
+
+    public function test_cashier_can_complete_transaction_with_debit_method_when_enabled(): void
+    {
+        $cashier = $this->createCashier();
+        $customer = Customer::create([
+            'name' => 'Debby Customer',
+            'no_telp' => 62877111,
+            'address' => 'Jl. Debit No. 3',
+        ]);
+        $product = $this->createProduct();
+
+        PaymentSetting::create([
+            'default_gateway' => PaymentSetting::GATEWAY_DEBIT,
+            'debit_enabled' => true,
+        ]);
+
+        $cart = Cart::create([
+            'cashier_id' => $cashier->id,
+            'product_id' => $product->id,
+            'qty' => 1,
+            'price' => $product->sell_price,
+        ]);
+
+        $response = $this
+            ->actingAs($cashier)
+            ->post(route('transactions.store'), [
+                'customer_id' => $customer->id,
+                'discount' => 0,
+                'grand_total' => $cart->price,
+                'cash' => 0,
+                'change' => 0,
+                'payment_gateway' => PaymentSetting::GATEWAY_DEBIT,
+            ]);
+
+        $transaction = Transaction::latest('id')->first();
+
+        $this->assertNotNull($transaction);
+        $response->assertRedirect(route('transactions.print', $transaction->invoice));
+        $this->assertSame(PaymentSetting::GATEWAY_DEBIT, $transaction->payment_method);
+        $this->assertSame('paid', $transaction->payment_status);
+        $this->assertSame((int) $cart->price, (int) $transaction->cash);
+        $this->assertSame(0, (int) $transaction->change);
+    }
+
     protected function createCashier(): User
     {
         $user = User::factory()->create();

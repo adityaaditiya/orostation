@@ -20,6 +20,7 @@ export default function Payment({ setting, supportedGateways = [] }) {
         bank_transfer_enabled: setting?.bank_transfer_enabled ?? false,
         ayo_enabled: setting?.ayo_enabled ?? false,
         credit_card_enabled: setting?.credit_card_enabled ?? false,
+        debit_enabled: setting?.debit_enabled ?? false,
         midtrans_enabled: setting?.midtrans_enabled ?? false,
         midtrans_server_key: setting?.midtrans_server_key ?? "",
         midtrans_client_key: setting?.midtrans_client_key ?? "",
@@ -46,6 +47,7 @@ export default function Payment({ setting, supportedGateways = [] }) {
         if (gateway === "bank_transfer") return data.bank_transfer_enabled;
         if (gateway === "ayo") return data.ayo_enabled;
         if (gateway === "credit_card") return data.credit_card_enabled;
+        if (gateway === "debit") return data.debit_enabled;
         if (gateway === "midtrans") return data.midtrans_enabled;
         if (gateway === "xendit") return data.xendit_enabled;
         return false;
@@ -231,6 +233,31 @@ export default function Payment({ setting, supportedGateways = [] }) {
                                 {data.credit_card_enabled
                                     ? "Aktif"
                                     : "Nonaktif"}
+                            </label>
+                        </div>
+                        <div className="flex items-center justify-between rounded-xl border border-slate-200 dark:border-slate-700 px-4 py-3">
+                            <div>
+                                <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">
+                                    Debit
+                                </p>
+                                <p className="text-xs text-slate-500 dark:text-slate-400">
+                                    Pembayaran kartu debit yang dicatat manual.
+                                </p>
+                            </div>
+                            <label
+                                className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium cursor-pointer transition-all ${
+                                    data.debit_enabled
+                                        ? "bg-success-100 dark:bg-success-900/50 text-success-700 dark:text-success-400"
+                                        : "bg-slate-100 dark:bg-slate-800 text-slate-500"
+                                }`}
+                            >
+                                <Checkbox
+                                    checked={data.debit_enabled}
+                                    onChange={(e) =>
+                                        setData("debit_enabled", e.target.checked)
+                                    }
+                                />
+                                {data.debit_enabled ? "Aktif" : "Nonaktif"}
                             </label>
                         </div>
                     </div>

@@ -433,6 +433,7 @@ class TransactionController extends Controller
             PaymentSetting::GATEWAY_BANK_TRANSFER,
             PaymentSetting::GATEWAY_AYO,
             PaymentSetting::GATEWAY_CREDIT_CARD,
+            PaymentSetting::GATEWAY_DEBIT,
         ], true)) {
             $manualPaymentMethod = $paymentGateway;
             $paymentGateway = null;
@@ -444,6 +445,7 @@ class TransactionController extends Controller
             PaymentSetting::GATEWAY_BANK_TRANSFER,
             PaymentSetting::GATEWAY_AYO,
             PaymentSetting::GATEWAY_CREDIT_CARD,
+            PaymentSetting::GATEWAY_DEBIT,
         ], true)) {
             $paymentSetting = PaymentSetting::first();
 

@@ -15,6 +15,7 @@ class PaymentSetting extends Model
     public const GATEWAY_BANK_TRANSFER = 'bank_transfer';
     public const GATEWAY_AYO = 'ayo';
     public const GATEWAY_CREDIT_CARD = 'credit_card';
+    public const GATEWAY_DEBIT = 'debit';
 
     protected $fillable = [
         'default_gateway',
@@ -30,6 +31,7 @@ class PaymentSetting extends Model
         'bank_transfer_enabled',
         'ayo_enabled',
         'credit_card_enabled',
+        'debit_enabled',
     ];
 
     protected $casts = [
@@ -41,6 +43,7 @@ class PaymentSetting extends Model
         'bank_transfer_enabled' => 'boolean',
         'ayo_enabled' => 'boolean',
         'credit_card_enabled' => 'boolean',
+        'debit_enabled' => 'boolean',
     ];
 
     public function enabledGateways(): array
@@ -79,6 +82,14 @@ class PaymentSetting extends Model
             ];
         }
 
+        if ($this->isGatewayReady(self::GATEWAY_DEBIT)) {
+            $gateways[] = [
+                'value' => self::GATEWAY_DEBIT,
+                'label' => 'Debit',
+                'description' => 'Pembayaran kartu debit yang dicatat manual.',
+            ];
+        }
+
         if ($this->isGatewayReady(self::GATEWAY_MIDTRANS)) {
             $gateways[] = [
                 'value' => self::GATEWAY_MIDTRANS,
@@ -111,6 +122,7 @@ class PaymentSetting extends Model
             self::GATEWAY_BANK_TRANSFER => $this->bank_transfer_enabled,
             self::GATEWAY_AYO => $this->ayo_enabled,
             self::GATEWAY_CREDIT_CARD => $this->credit_card_enabled,
+            self::GATEWAY_DEBIT => $this->debit_enabled,
             default => false,
         };
     }

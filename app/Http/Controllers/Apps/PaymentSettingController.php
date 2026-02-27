@@ -24,6 +24,7 @@ class PaymentSettingController extends Controller
                 ['value' => PaymentSetting::GATEWAY_BANK_TRANSFER, 'label' => 'Transfer Bank'],
                 ['value' => PaymentSetting::GATEWAY_AYO, 'label' => 'AYO'],
                 ['value' => PaymentSetting::GATEWAY_CREDIT_CARD, 'label' => 'Credit Card'],
+                ['value' => PaymentSetting::GATEWAY_DEBIT, 'label' => 'Debit'],
                 ['value' => PaymentSetting::GATEWAY_MIDTRANS, 'label' => 'Midtrans'],
                 ['value' => PaymentSetting::GATEWAY_XENDIT, 'label' => 'Xendit'],
             ],
@@ -45,6 +46,7 @@ class PaymentSettingController extends Controller
                     PaymentSetting::GATEWAY_BANK_TRANSFER,
                     PaymentSetting::GATEWAY_AYO,
                     PaymentSetting::GATEWAY_CREDIT_CARD,
+                    PaymentSetting::GATEWAY_DEBIT,
                     PaymentSetting::GATEWAY_MIDTRANS,
                     PaymentSetting::GATEWAY_XENDIT,
                 ]),
@@ -53,6 +55,7 @@ class PaymentSettingController extends Controller
             'bank_transfer_enabled' => ['boolean'],
             'ayo_enabled' => ['boolean'],
             'credit_card_enabled' => ['boolean'],
+            'debit_enabled' => ['boolean'],
             'midtrans_enabled' => ['boolean'],
             'midtrans_server_key' => ['nullable', 'string'],
             'midtrans_client_key' => ['nullable', 'string'],
@@ -69,6 +72,7 @@ class PaymentSettingController extends Controller
         $bankTransferEnabled = (bool) ($data['bank_transfer_enabled'] ?? false);
         $ayoEnabled = (bool) ($data['ayo_enabled'] ?? false);
         $creditCardEnabled = (bool) ($data['credit_card_enabled'] ?? false);
+        $debitEnabled = (bool) ($data['debit_enabled'] ?? false);
 
         if ($midtransEnabled && (empty($data['midtrans_server_key']) || empty($data['midtrans_client_key']))) {
             return back()->withErrors([
@@ -89,7 +93,8 @@ class PaymentSettingController extends Controller
                 || ($data['default_gateway'] === PaymentSetting::GATEWAY_QRIS && $qrisEnabled)
                 || ($data['default_gateway'] === PaymentSetting::GATEWAY_BANK_TRANSFER && $bankTransferEnabled)
                 || ($data['default_gateway'] === PaymentSetting::GATEWAY_AYO && $ayoEnabled)
-                || ($data['default_gateway'] === PaymentSetting::GATEWAY_CREDIT_CARD && $creditCardEnabled))
+                || ($data['default_gateway'] === PaymentSetting::GATEWAY_CREDIT_CARD && $creditCardEnabled)
+                || ($data['default_gateway'] === PaymentSetting::GATEWAY_DEBIT && $debitEnabled))
         ) {
             return back()->withErrors([
                 'default_gateway' => 'Gateway default harus dalam kondisi aktif.',
@@ -102,6 +107,7 @@ class PaymentSettingController extends Controller
             'bank_transfer_enabled' => $bankTransferEnabled,
             'ayo_enabled' => $ayoEnabled,
             'credit_card_enabled' => $creditCardEnabled,
+            'debit_enabled' => $debitEnabled,
             'midtrans_enabled' => $midtransEnabled,
             'midtrans_server_key' => $data['midtrans_server_key'],
             'midtrans_client_key' => $data['midtrans_client_key'],
