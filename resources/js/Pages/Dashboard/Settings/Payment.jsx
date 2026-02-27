@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { Head, useForm, usePage } from "@inertiajs/react";
 import DashboardLayout from "@/Layouts/DashboardLayout";
 import Input from "@/Components/Dashboard/Input";
@@ -8,18 +8,11 @@ import {
     IconDeviceFloppy,
     IconBrandStripe,
     IconCash,
-    IconPlus,
 } from "@tabler/icons-react";
 import toast from "react-hot-toast";
 
 export default function Payment({ setting, supportedGateways = [] }) {
     const { flash } = usePage().props;
-    const [showManualMethodForm, setShowManualMethodForm] = useState(false);
-    const [customManualMethods, setCustomManualMethods] = useState([]);
-    const [newManualMethod, setNewManualMethod] = useState({
-        name: "",
-        description: "",
-    });
 
     const { data, setData, put, errors, processing } = useForm({
         default_gateway: setting?.default_gateway ?? "cash",
@@ -56,35 +49,6 @@ export default function Payment({ setting, supportedGateways = [] }) {
         if (gateway === "midtrans") return data.midtrans_enabled;
         if (gateway === "xendit") return data.xendit_enabled;
         return false;
-    };
-
-    const handleAddManualMethod = (e) => {
-        e.preventDefault();
-
-        if (!newManualMethod.name.trim()) return;
-
-        setCustomManualMethods((prev) => [
-            ...prev,
-            {
-                id: Date.now(),
-                name: newManualMethod.name.trim(),
-                description:
-                    newManualMethod.description.trim() ||
-                    "Metode pembayaran manual tambahan.",
-                enabled: true,
-            },
-        ]);
-
-        setNewManualMethod({ name: "", description: "" });
-        setShowManualMethodForm(false);
-    };
-
-    const toggleCustomManualMethod = (id, enabled) => {
-        setCustomManualMethods((prev) =>
-            prev.map((method) =>
-                method.id === id ? { ...method, enabled } : method
-            )
-        );
     };
 
     return (
@@ -145,74 +109,14 @@ export default function Payment({ setting, supportedGateways = [] }) {
 
                 {/* Manual Payment Methods */}
                 <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 space-y-4">
-                    <div className="flex items-center justify-between gap-3">
-                        <div className="flex items-center gap-2 text-sm font-semibold text-slate-700 dark:text-slate-300">
-                            <IconCreditCard size={18} />
-                            Metode Pembayaran Manual
-                        </div>
-                        <button
-                            type="button"
-                            onClick={() => setShowManualMethodForm((prev) => !prev)}
-                            className="inline-flex items-center justify-center w-8 h-8 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-                            aria-label="Tambah data metode pembayaran manual"
-                        >
-                            <IconPlus size={16} />
-                        </button>
+                    <div className="flex items-center gap-2 text-sm font-semibold text-slate-700 dark:text-slate-300">
+                        <IconCreditCard size={18} />
+                        Metode Pembayaran Manual
                     </div>
                     <p className="text-sm text-slate-500 dark:text-slate-400">
                         Aktifkan metode manual yang tersedia pada menu
                         transaksi.
                     </p>
-                    {showManualMethodForm && (
-                        <div className="rounded-xl border border-slate-200 dark:border-slate-700 p-4 space-y-3">
-                            <Input
-                                label="Nama Metode"
-                                type="text"
-                                value={newManualMethod.name}
-                                onChange={(e) =>
-                                    setNewManualMethod((prev) => ({
-                                        ...prev,
-                                        name: e.target.value,
-                                    }))
-                                }
-                                placeholder="Contoh: E-Wallet Toko"
-                            />
-                            <Input
-                                label="Deskripsi"
-                                type="text"
-                                value={newManualMethod.description}
-                                onChange={(e) =>
-                                    setNewManualMethod((prev) => ({
-                                        ...prev,
-                                        description: e.target.value,
-                                    }))
-                                }
-                                placeholder="Deskripsi metode pembayaran"
-                            />
-                            <div className="flex justify-end gap-2">
-                                <button
-                                    type="button"
-                                    onClick={() => {
-                                        setShowManualMethodForm(false);
-                                        setNewManualMethod({
-                                            name: "",
-                                            description: "",
-                                        });
-                                    }}
-                                    className="px-3 py-1.5 rounded-lg text-sm border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
-                                >
-                                    Batal
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={handleAddManualMethod}
-                                    className="px-3 py-1.5 rounded-lg text-sm bg-primary-500 hover:bg-primary-600 text-white"
-                                >
-                                    Simpan
-                                </button>
-                            </div>
-                        </div>
-                    )}
                     <div className="grid gap-4 md:grid-cols-2">
                         <div className="flex items-center justify-between rounded-xl border border-slate-200 dark:border-slate-700 px-4 py-3">
                             <div>
@@ -329,39 +233,6 @@ export default function Payment({ setting, supportedGateways = [] }) {
                                     : "Nonaktif"}
                             </label>
                         </div>
-                        {customManualMethods.map((method) => (
-                            <div
-                                key={method.id}
-                                className="flex items-center justify-between rounded-xl border border-slate-200 dark:border-slate-700 px-4 py-3"
-                            >
-                                <div>
-                                    <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">
-                                        {method.name}
-                                    </p>
-                                    <p className="text-xs text-slate-500 dark:text-slate-400">
-                                        {method.description}
-                                    </p>
-                                </div>
-                                <label
-                                    className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium cursor-pointer transition-all ${
-                                        method.enabled
-                                            ? "bg-success-100 dark:bg-success-900/50 text-success-700 dark:text-success-400"
-                                            : "bg-slate-100 dark:bg-slate-800 text-slate-500"
-                                    }`}
-                                >
-                                    <Checkbox
-                                        checked={method.enabled}
-                                        onChange={(e) =>
-                                            toggleCustomManualMethod(
-                                                method.id,
-                                                e.target.checked
-                                            )
-                                        }
-                                    />
-                                    {method.enabled ? "Aktif" : "Nonaktif"}
-                                </label>
-                            </div>
-                        ))}
                     </div>
                 </div>
 
