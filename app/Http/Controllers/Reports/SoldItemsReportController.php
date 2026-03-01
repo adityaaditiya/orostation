@@ -166,7 +166,25 @@ class SoldItemsReportController extends Controller
         })->all();
 
         $totalItems = (int) $soldItems->sum(fn ($item) => (int) ($item->qty ?? 0));
-        $totalPrice = (int) $soldItems->sum(fn ($item) => (int) ($item->price ?? 0));
+        $totalPrice = (int) $soldItems->sum(fn ($item) => (int) ($item->qty ?? 0) * (int) ($item->price ?? 0));
+
+        $productRecapLines = $soldItems
+            ->groupBy(fn ($item) => $item->product?->title ?? '-')
+            ->map(function ($groupedItems, $productName) {
+                $qtySold = (int) $groupedItems->sum(fn ($item) => (int) ($item->qty ?? 0));
+                $totalProductPrice = (int) $groupedItems->sum(fn ($item) => (int) ($item->qty ?? 0) * (int) ($item->price ?? 0));
+
+                return $productName . ' | Qty: ' . $qtySold . ' | Total: ' . $this->formatCurrency($totalProductPrice);
+            })
+            ->values()
+            ->all();
+
+        $footerLines = [
+            'Total Barang Terjual: ' . $totalItems,
+            'Rekap per Produk',
+            ...$productRecapLines,
+            'Total Harga: ' . $this->formatCurrency($totalPrice),
+        ];
 
         return $this->downloadPdf(
             'laporan-barang-terjual.pdf',
@@ -174,10 +192,7 @@ class SoldItemsReportController extends Controller
             $this->buildPeriodLabel($filters),
             $headers,
             $rows,
-            [
-                'Total Barang Terjual: ' . $totalItems,
-                'Total Harga: ' . $this->formatCurrency($totalPrice),
-            ],
+            $footerLines,
             'landscape',
             [0.55, 1.35, 3.25, 0.85, 1.5, 2.0]
         );
