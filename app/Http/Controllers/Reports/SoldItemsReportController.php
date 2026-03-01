@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Reports;
 
 use App\Http\Controllers\Controller;
+use App\Models\Category;
 use App\Models\Customer;
 use App\Models\TransactionDetail;
 use App\Models\User;
@@ -25,6 +26,7 @@ class SoldItemsReportController extends Controller
             'invoice' => $request->input('invoice'),
             'cashier_id' => $request->input('cashier_id'),
             'customer_id' => $request->input('customer_id'),
+            'category_id' => $request->input('category_id'),
         ];
 
         $baseQuery = $this->applyFilters(
@@ -65,6 +67,7 @@ class SoldItemsReportController extends Controller
             'filters' => $filters,
             'cashiers' => User::select('id', 'name')->orderBy('name')->get(),
             'customers' => Customer::select('id', 'name')->orderBy('name')->get(),
+            'categories' => Category::select('id', 'name')->orderBy('name')->get(),
         ]);
     }
 
@@ -80,6 +83,7 @@ class SoldItemsReportController extends Controller
             'invoice' => $request->input('invoice'),
             'cashier_id' => $request->input('cashier_id'),
             'customer_id' => $request->input('customer_id'),
+            'category_id' => $request->input('category_id'),
         ];
 
         $baseQuery = $this->applyFilters(
@@ -130,6 +134,7 @@ class SoldItemsReportController extends Controller
             'invoice' => $request->input('invoice'),
             'cashier_id' => $request->input('cashier_id'),
             'customer_id' => $request->input('customer_id'),
+            'category_id' => $request->input('category_id'),
         ];
 
         $soldItems = $this->applyFilters(
@@ -161,7 +166,25 @@ class SoldItemsReportController extends Controller
         })->all();
 
         $totalItems = (int) $soldItems->sum(fn ($item) => (int) ($item->qty ?? 0));
-        $totalPrice = (int) $soldItems->sum(fn ($item) => (int) ($item->price ?? 0));
+        $totalPrice = (int) $soldItems->sum(fn ($item) => (int) ($item->qty ?? 0) * (int) ($item->price ?? 0));
+
+        $productRecapLines = $soldItems
+            ->groupBy(fn ($item) => $item->product?->title ?? '-')
+            ->map(function ($groupedItems, $productName) {
+                $qtySold = (int) $groupedItems->sum(fn ($item) => (int) ($item->qty ?? 0));
+                $totalProductPrice = (int) $groupedItems->sum(fn ($item) => (int) ($item->qty ?? 0) * (int) ($item->price ?? 0));
+
+                return $productName . ' | Qty: ' . $qtySold . ' | Total: ' . $this->formatCurrency($totalProductPrice);
+            })
+            ->values()
+            ->all();
+
+        $footerLines = [
+            'Total Barang Terjual: ' . $totalItems,
+            'Rekap per Produk',
+            ...$productRecapLines,
+            'Total Harga: ' . $this->formatCurrency($totalPrice),
+        ];
 
         return $this->downloadPdf(
             'laporan-barang-terjual.pdf',
@@ -169,10 +192,7 @@ class SoldItemsReportController extends Controller
             $this->buildPeriodLabel($filters),
             $headers,
             $rows,
-            [
-                'Total Barang Terjual: ' . $totalItems,
-                'Total Harga: ' . $this->formatCurrency($totalPrice),
-            ],
+            $footerLines,
             'landscape',
             [0.55, 1.35, 3.25, 0.85, 1.5, 2.0]
         );
@@ -184,6 +204,7 @@ class SoldItemsReportController extends Controller
             ->when($filters['invoice'] ?? null, fn ($q, $invoice) => $q->whereHas('transaction', fn ($trx) => $trx->where('invoice', 'like', '%' . $invoice . '%')))
             ->when($filters['cashier_id'] ?? null, fn ($q, $cashier) => $q->whereHas('transaction', fn ($trx) => $trx->where('cashier_id', $cashier)))
             ->when($filters['customer_id'] ?? null, fn ($q, $customer) => $q->whereHas('transaction', fn ($trx) => $trx->where('customer_id', $customer)))
+            ->when($filters['category_id'] ?? null, fn ($q, $category) => $q->whereHas('product', fn ($product) => $product->where('category_id', $category)))
             ->when($filters['start_date'] ?? null, fn ($q, $start) => $q->whereHas('transaction', fn ($trx) => $trx->whereDate('created_at', '>=', $start)))
             ->when($filters['end_date'] ?? null, fn ($q, $end) => $q->whereHas('transaction', fn ($trx) => $trx->whereDate('created_at', '<=', $end)));
     }
