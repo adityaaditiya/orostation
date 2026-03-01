@@ -46,6 +46,7 @@ const defaultFilterState = {
     invoice: "",
     cashier_id: "",
     customer_id: "",
+    category_id: "",
 };
 
 const castFilterString = (value) =>
@@ -58,7 +59,7 @@ const formatCurrency = (value = 0) =>
         minimumFractionDigits: 0,
     }).format(value);
 
-const SoldItems = ({ soldItems, summary, filters, cashiers, customers }) => {
+const SoldItems = ({ soldItems, summary, filters, cashiers, customers, categories }) => {
     const [showFilters, setShowFilters] = useState(false);
     const [filterData, setFilterData] = useState({
         ...defaultFilterState,
@@ -67,6 +68,7 @@ const SoldItems = ({ soldItems, summary, filters, cashiers, customers }) => {
         invoice: castFilterString(filters?.invoice),
         cashier_id: castFilterString(filters?.cashier_id),
         customer_id: castFilterString(filters?.customer_id),
+        category_id: castFilterString(filters?.category_id),
     });
 
     const cashierFromFilters = useMemo(
@@ -98,6 +100,7 @@ const SoldItems = ({ soldItems, summary, filters, cashiers, customers }) => {
             invoice: castFilterString(filters?.invoice),
             cashier_id: castFilterString(filters?.cashier_id),
             customer_id: castFilterString(filters?.customer_id),
+            category_id: castFilterString(filters?.category_id),
         });
     }, [filters]);
 
@@ -144,7 +147,8 @@ const SoldItems = ({ soldItems, summary, filters, cashiers, customers }) => {
         filterData.start_date ||
         filterData.end_date ||
         filterData.cashier_id ||
-        filterData.customer_id;
+        filterData.customer_id ||
+        filterData.category_id;
 
     const handleExport = () => {
         window.location.href = route("reports.sold-items.export", filterData);
@@ -257,6 +261,25 @@ const SoldItems = ({ soldItems, summary, filters, cashiers, customers }) => {
                                         }
                                         className="w-full h-11 px-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-200"
                                     />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                                        Kategori Produk
+                                    </label>
+                                    <select
+                                        value={filterData.category_id}
+                                        onChange={(e) =>
+                                            handleChange("category_id", e.target.value)
+                                        }
+                                        className="w-full h-11 px-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-200"
+                                    >
+                                        <option value="">Semua kategori</option>
+                                        {(categories ?? []).map((category) => (
+                                            <option key={category.id} value={category.id}>
+                                                {category.name}
+                                            </option>
+                                        ))}
+                                    </select>
                                 </div>
                                 {/* <InputSelect
                                     label="Kasir"
