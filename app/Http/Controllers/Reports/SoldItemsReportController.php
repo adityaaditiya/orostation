@@ -166,25 +166,6 @@ class SoldItemsReportController extends Controller
         })->all();
 
         $totalItems = (int) $soldItems->sum(fn ($item) => (int) ($item->qty ?? 0));
-        $totalPrice = (int) $soldItems->sum(fn ($item) => (int) ($item->qty ?? 0) * (int) ($item->price ?? 0));
-
-        $productRecapLines = $soldItems
-            ->groupBy(fn ($item) => $item->product?->title ?? '-')
-            ->map(function ($groupedItems, $productName) {
-                $qtySold = (int) $groupedItems->sum(fn ($item) => (int) ($item->qty ?? 0));
-                $totalProductPrice = (int) $groupedItems->sum(fn ($item) => (int) ($item->qty ?? 0) * (int) ($item->price ?? 0));
-
-                return $productName . ' | Qty: ' . $qtySold . ' | Total: ' . $this->formatCurrency($totalProductPrice);
-            })
-            ->values()
-            ->all();
-
-        $footerLines = [
-            'Total Barang Terjual: ' . $totalItems,
-            'Rekap per Produk',
-            ...$productRecapLines,
-            'Total Harga: ' . $this->formatCurrency($totalPrice),
-        ];
 
         $recapHeaders = ['No', 'Produk Terjual', 'Qty Terjual', 'Total Harga'];
         $recapRows = $soldItems
@@ -205,6 +186,13 @@ class SoldItemsReportController extends Controller
                 ...$row,
             ])
             ->all();
+
+        $totalPrice = (int) collect($recapRows)->sum(function ($row) {
+            $formattedPrice = (string) ($row[3] ?? '');
+            $numericPrice = preg_replace('/[^0-9]/', '', $formattedPrice) ?? '0';
+
+            return (int) $numericPrice;
+        });
 
         return $this->downloadPdf(
             'laporan-barang-terjual.pdf',
