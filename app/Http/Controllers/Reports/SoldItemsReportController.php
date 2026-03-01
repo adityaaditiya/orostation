@@ -186,15 +186,48 @@ class SoldItemsReportController extends Controller
             'Total Harga: ' . $this->formatCurrency($totalPrice),
         ];
 
+        $recapHeaders = ['No', 'Produk Terjual', 'Qty Terjual', 'Total Harga'];
+        $recapRows = $soldItems
+            ->groupBy(fn ($item) => $item->product?->title ?? '-')
+            ->map(function ($groupedItems, $productName) {
+                $qtySold = (int) $groupedItems->sum(fn ($item) => (int) ($item->qty ?? 0));
+                $totalProductPrice = (int) $groupedItems->sum(fn ($item) => (int) ($item->price ?? 0));
+
+                return [
+                    $productName,
+                    $qtySold,
+                    $this->formatCurrency($totalProductPrice),
+                ];
+            })
+            ->values()
+            ->map(fn ($row, $index) => [
+                $index + 1,
+                ...$row,
+            ])
+            ->all();
+
         return $this->downloadPdf(
             'laporan-barang-terjual.pdf',
             'Laporan Barang Terjual',
             $this->buildPeriodLabel($filters),
             $headers,
             $rows,
-            $footerLines,
+            [
+                'Total Barang Terjual: ' . $totalItems,
+            ],
             'landscape',
-            [0.55, 1.35, 3.25, 0.85, 1.5, 2.0]
+            [0.55, 1.35, 3.25, 0.85, 1.5, 2.0],
+            [
+                [
+                    'title' => 'Rekap per Produk',
+                    'headers' => $recapHeaders,
+                    'rows' => $recapRows,
+                    'footer_lines' => [
+                        'Total Harga: ' . $this->formatCurrency($totalPrice),
+                    ],
+                    'column_widths' => [0.6, 3.4, 1.2, 1.4],
+                ],
+            ]
         );
     }
 
@@ -243,14 +276,16 @@ class SoldItemsReportController extends Controller
         return 'PERIODE : ' . $startDate . ' s/d ' . $endDate;
     }
 
-    protected function downloadPdf(string $filename, string $title, string $period, array $headers, array $rows, array $footerLines = [], string $orientation = 'portrait', array $columnWidths = [])
+    protected function downloadPdf(string $filename, string $title, string $period, array $headers, array $rows, array $footerLines = [], string $orientation = 'portrait', array $columnWidths = [], array $additionalSections = [])
     {
-        $pdfBinary = SimplePdfExport::make($title, $period, $headers, [], [[
+        $sections = array_merge([[
             "title" => "",
             "rows" => $rows,
             "footer_lines" => $footerLines,
             "column_widths" => $columnWidths,
-        ]], $orientation);
+        ]], $additionalSections);
+
+        $pdfBinary = SimplePdfExport::make($title, $period, $headers, [], $sections, $orientation);
 
         return response($pdfBinary, 200, [
             'Content-Type' => 'application/pdf',
