@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Reports;
 
 use App\Http\Controllers\Controller;
+use App\Models\Category;
 use App\Models\Customer;
 use App\Models\TransactionDetail;
 use App\Models\User;
@@ -25,6 +26,7 @@ class SoldItemsReportController extends Controller
             'invoice' => $request->input('invoice'),
             'cashier_id' => $request->input('cashier_id'),
             'customer_id' => $request->input('customer_id'),
+            'category_id' => $request->input('category_id'),
         ];
 
         $baseQuery = $this->applyFilters(
@@ -65,6 +67,7 @@ class SoldItemsReportController extends Controller
             'filters' => $filters,
             'cashiers' => User::select('id', 'name')->orderBy('name')->get(),
             'customers' => Customer::select('id', 'name')->orderBy('name')->get(),
+            'categories' => Category::select('id', 'name')->orderBy('name')->get(),
         ]);
     }
 
@@ -80,6 +83,7 @@ class SoldItemsReportController extends Controller
             'invoice' => $request->input('invoice'),
             'cashier_id' => $request->input('cashier_id'),
             'customer_id' => $request->input('customer_id'),
+            'category_id' => $request->input('category_id'),
         ];
 
         $baseQuery = $this->applyFilters(
@@ -130,6 +134,7 @@ class SoldItemsReportController extends Controller
             'invoice' => $request->input('invoice'),
             'cashier_id' => $request->input('cashier_id'),
             'customer_id' => $request->input('customer_id'),
+            'category_id' => $request->input('category_id'),
         ];
 
         $soldItems = $this->applyFilters(
@@ -163,6 +168,26 @@ class SoldItemsReportController extends Controller
         $totalItems = (int) $soldItems->sum(fn ($item) => (int) ($item->qty ?? 0));
         $totalPrice = (int) $soldItems->sum(fn ($item) => (int) ($item->price ?? 0));
 
+        $recapHeaders = ['No', 'Produk Terjual', 'Qty Terjual', 'Total Harga'];
+        $recapRows = $soldItems
+            ->groupBy(fn ($item) => $item->product?->title ?? '-')
+            ->map(function ($groupedItems, $productName) {
+                $qtySold = (int) $groupedItems->sum(fn ($item) => (int) ($item->qty ?? 0));
+                $totalProductPrice = (int) $groupedItems->sum(fn ($item) => (int) ($item->price ?? 0));
+
+                return [
+                    $productName,
+                    $qtySold,
+                    $this->formatCurrency($totalProductPrice),
+                ];
+            })
+            ->values()
+            ->map(fn ($row, $index) => [
+                $index + 1,
+                ...$row,
+            ])
+            ->all();
+
         return $this->downloadPdf(
             'laporan-barang-terjual.pdf',
             'Laporan Barang Terjual',
@@ -171,10 +196,20 @@ class SoldItemsReportController extends Controller
             $rows,
             [
                 'Total Barang Terjual: ' . $totalItems,
-                'Total Harga: ' . $this->formatCurrency($totalPrice),
             ],
             'landscape',
-            [0.55, 1.35, 3.25, 0.85, 1.5, 2.0]
+            [0.55, 1.35, 3.25, 0.85, 1.5, 2.0],
+            [
+                [
+                    'title' => 'Rekap per Produk',
+                    'headers' => $recapHeaders,
+                    'rows' => $recapRows,
+                    'footer_lines' => [
+                        'Total Harga: ' . $this->formatCurrency($totalPrice),
+                    ],
+                    'column_widths' => [0.6, 3.4, 1.2, 1.4],
+                ],
+            ]
         );
     }
 
@@ -184,6 +219,7 @@ class SoldItemsReportController extends Controller
             ->when($filters['invoice'] ?? null, fn ($q, $invoice) => $q->whereHas('transaction', fn ($trx) => $trx->where('invoice', 'like', '%' . $invoice . '%')))
             ->when($filters['cashier_id'] ?? null, fn ($q, $cashier) => $q->whereHas('transaction', fn ($trx) => $trx->where('cashier_id', $cashier)))
             ->when($filters['customer_id'] ?? null, fn ($q, $customer) => $q->whereHas('transaction', fn ($trx) => $trx->where('customer_id', $customer)))
+            ->when($filters['category_id'] ?? null, fn ($q, $category) => $q->whereHas('product', fn ($product) => $product->where('category_id', $category)))
             ->when($filters['start_date'] ?? null, fn ($q, $start) => $q->whereHas('transaction', fn ($trx) => $trx->whereDate('created_at', '>=', $start)))
             ->when($filters['end_date'] ?? null, fn ($q, $end) => $q->whereHas('transaction', fn ($trx) => $trx->whereDate('created_at', '<=', $end)));
     }
@@ -222,14 +258,16 @@ class SoldItemsReportController extends Controller
         return 'PERIODE : ' . $startDate . ' s/d ' . $endDate;
     }
 
-    protected function downloadPdf(string $filename, string $title, string $period, array $headers, array $rows, array $footerLines = [], string $orientation = 'portrait', array $columnWidths = [])
+    protected function downloadPdf(string $filename, string $title, string $period, array $headers, array $rows, array $footerLines = [], string $orientation = 'portrait', array $columnWidths = [], array $additionalSections = [])
     {
-        $pdfBinary = SimplePdfExport::make($title, $period, $headers, [], [[
+        $sections = array_merge([[
             "title" => "",
             "rows" => $rows,
             "footer_lines" => $footerLines,
             "column_widths" => $columnWidths,
-        ]], $orientation);
+        ]], $additionalSections);
+
+        $pdfBinary = SimplePdfExport::make($title, $period, $headers, [], $sections, $orientation);
 
         return response($pdfBinary, 200, [
             'Content-Type' => 'application/pdf',
