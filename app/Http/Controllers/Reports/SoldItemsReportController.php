@@ -201,19 +201,20 @@ class SoldItemsReportController extends Controller
             $headers,
             $rows,
             [
-                'Total Barang Terjual: ' . $totalItems,
+                '  ',
             ],
             'landscape',
-            [0.55, 1.35, 3.25, 0.85, 1.5, 2.0],
+            [0.3, 1.35, 3.25, 0.65, 1.2, 2.7],
             [
                 [
                     'title' => 'Rekap per Produk',
                     'headers' => $recapHeaders,
                     'rows' => $recapRows,
                     'footer_lines' => [
+                        'Total Barang Terjual: ' . $totalItems,
                         'Total Harga: ' . $this->formatCurrency($totalPrice),
                     ],
-                    'column_widths' => [0.6, 3.4, 1.2, 1.4],
+                    'column_widths' => [0.3, 3.4, 0.50, 1.4],
                 ],
             ]
         );
