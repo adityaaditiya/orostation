@@ -15,6 +15,7 @@ import {
     IconShoppingCart,
     IconChartBar,
     IconClock,
+    IconNotes,
 } from "@tabler/icons-react";
 
 const formatCurrency = (value = 0) =>
@@ -146,6 +147,7 @@ export default function Dashboard({
     topProducts = [],
     recentTransactions = [],
     topCustomers = [],
+    welcomeClassDetails = [],
 }) {
     const chartRef = useRef(null);
     const chartInstance = useRef(null);
@@ -412,35 +414,25 @@ export default function Dashboard({
                         )}
                     </ListCard>
 
-                    {/* Top Customers */}
+                    {/* Welcome Class Detail */}
                     <ListCard
-                        title="Transaksi Pelanggan"
-                        subtitle="Berdasarkan nilai pembelian"
-                        icon={IconUsers}
-                        emptyMessage="Belum ada data pelanggan"
+                        title="Welcome Class Detail"
+                        subtitle="Biodata trainer terbaru"
+                        icon={IconNotes}
+                        emptyMessage="Belum ada data trainer"
                     >
-                        {topCustomers.length > 0 && (
+                        {welcomeClassDetails.length > 0 && (
                             <ul className="space-y-3">
-                                {topCustomers.map((customer, index) => (
+                                {welcomeClassDetails.map((trainer) => (
                                     <li
-                                        key={index}
-                                        className="flex items-center justify-between p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"
+                                        key={trainer.id}
+                                        className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50"
                                     >
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-accent-400 to-accent-600 flex items-center justify-center text-white text-sm font-bold">
-                                                {customer.name.charAt(0)}
-                                            </div>
-                                            <div>
-                                                <p className="text-sm font-medium text-slate-800 dark:text-slate-200">
-                                                    {customer.name}
-                                                </p>
-                                                <p className="text-xs text-slate-500">
-                                                    {customer.orders} transaksi
-                                                </p>
-                                            </div>
-                                        </div>
-                                        <p className="text-sm font-semibold text-slate-900 dark:text-white">
-                                            {formatCurrency(customer.total)}
+                                        <p className="text-sm font-semibold text-slate-800 dark:text-slate-200">
+                                            {trainer.name}
+                                        </p>
+                                        <p className="text-xs text-slate-500 mt-1 line-clamp-3">
+                                            {trainer.biodata}
                                         </p>
                                     </li>
                                 ))}
