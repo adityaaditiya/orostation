@@ -62,13 +62,6 @@ function Menu() {
                     permissions: hasAnyPermission(["products-access"]),
                 },
                 {
-                    title: "Trainer",
-                    href: route("trainers.index"),
-                    active: url === "/dashboard/trainers" ? true : false,
-                    icon: <IconUserSquare size={20} strokeWidth={1.5} />,
-                    permissions: hasAnyPermission(["customers-access"]),
-                },
-                {
                     title: "Pelanggan",
                     href: route("customers.index"),
                     active: url === "/dashboard/customers" ? true : false, // Update comparison here
