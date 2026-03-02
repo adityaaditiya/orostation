@@ -7,7 +7,6 @@ use App\Models\Profit;
 use App\Models\Product;
 use App\Models\Transaction;
 use App\Models\TransactionDetail;
-use App\Models\Trainer;
 use App\Models\User;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -74,16 +73,6 @@ class DashboardController extends Controller
                 ];
             });
 
-
-        $welcomeClassDetails = Trainer::latest()
-            ->take(3)
-            ->get(['id', 'name', 'biodata'])
-            ->map(fn ($trainer) => [
-                'id' => $trainer->id,
-                'name' => $trainer->name,
-                'biodata' => $trainer->biodata,
-            ]);
-
         $topCustomers = Transaction::notCanceled()
             ->select('customer_id', DB::raw('COUNT(*) as orders'), DB::raw('SUM(grand_total) as total'))
             ->with('customer:id,name')
@@ -113,7 +102,6 @@ class DashboardController extends Controller
             'topProducts'       => $topProducts,
             'recentTransactions'=> $recentTransactions,
             'topCustomers'      => $topCustomers,
-            'welcomeClassDetails'=> $welcomeClassDetails,
         ]);
     }
 }
