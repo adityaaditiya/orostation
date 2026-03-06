@@ -172,13 +172,13 @@ export default function Print({ transaction }) {
                                         transaction={transaction}
                                         storeName="ORO PADEL"
                                         storeAddress="Jl. Layur no. 08, Kota Tegal"
-                                        storePhone="08123456789"
+                                        storePhone="082326923196"
                                     />
                                 ) : (
                                     <ThermalReceipt58mm
                                         transaction={transaction}
                                         storeName="ORO PADEL"
-                                        storePhone="08123456789"
+                                        storePhone="082326923196"
                                     />
                                 )}
                             </div>
