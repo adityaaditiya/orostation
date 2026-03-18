@@ -9,29 +9,46 @@ import {
     IconWallet,
 } from "@tabler/icons-react";
 
+const entryTypeContent = {
+    in: {
+        title: "Tambah Uang Kas",
+        description: "Catat penambahan uang kas ke laporan keuangan cash.",
+        successMessage: "Tambah uang kas berhasil disimpan",
+        errorMessage: "Gagal menyimpan tambah uang kas",
+    },
+    out: {
+        title: "Ambil Uang Kas",
+        description: "Catat pengambilan uang kas ke laporan keuangan cash.",
+        successMessage: "Ambil uang kas berhasil disimpan",
+        errorMessage: "Gagal menyimpan ambil uang kas",
+    },
+};
+
 export default function CashEntry() {
-    const { errors } = usePage().props;
+    const { errors, entryType = "in", categoryOptions = [] } = usePage().props;
+    const content = entryTypeContent[entryType] ?? entryTypeContent.in;
 
     const { data, setData, post, processing, reset } = useForm({
-        category: "in",
+        category: categoryOptions[0] ?? "",
         description: "",
         amount: "",
     });
 
     const submit = (e) => {
         e.preventDefault();
-        post(route("transactions.cash.store"), {
+        post(route("transactions.cash.store", { type: entryType }), {
             onSuccess: () => {
-                toast.success("Uang kas berhasil disimpan");
+                toast.success(content.successMessage);
                 reset("description", "amount");
+                setData("category", categoryOptions[0] ?? "");
             },
-            onError: () => toast.error("Gagal menyimpan uang kas"),
+            onError: () => toast.error(content.errorMessage),
         });
     };
 
     return (
         <>
-            <Head title="Uang Kas" />
+            <Head title={content.title} />
 
             <div className="mb-6">
                 <Link
@@ -43,11 +60,10 @@ export default function CashEntry() {
                 </Link>
                 <h1 className="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
                     <IconWallet size={28} className="text-primary-500" />
-                    Uang Kas
+                    {content.title}
                 </h1>
                 <p className="text-sm text-slate-500 dark:text-slate-400">
-                    Catat uang masuk dan uang keluar yang akan masuk ke laporan
-                    keuangan cash.
+                    {content.description}
                 </p>
             </div>
 
@@ -78,8 +94,11 @@ export default function CashEntry() {
                                         }
                                     `}
                                 >
-                                    <option value="in">Uang Masuk</option>
-                                    <option value="out">Uang Keluar</option>
+                                    {categoryOptions.map((category) => (
+                                        <option key={category} value={category}>
+                                            {category}
+                                        </option>
+                                    ))}
                                 </select>
                                 {errors.category && (
                                     <small className="text-xs text-danger-500 dark:text-danger-400">

@@ -60,7 +60,7 @@ const formatCurrency = (value = 0) =>
 const castFilterString = (value) =>
     typeof value === "number" ? String(value) : value ?? "";
 
-const Cash = ({ transactions, summary, filters, cashiers, customers }) => {
+const Cash = ({ transactions, summary, filters, cashiers, customers, transactionCategories = [] }) => {
     const [showFilters, setShowFilters] = useState(false);
     const [filterData, setFilterData] = useState({
         ...defaultFilterState,
@@ -327,11 +327,18 @@ const Cash = ({ transactions, summary, filters, cashiers, customers }) => {
                                         className="w-full h-11 px-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all"
                                     >
                                         <option value="">Semua kategori</option>
-                                        <option value="transaksi_penjualan">
-                                            Transaksi Penjualan
-                                        </option>
-                                        <option value="uang_masuk">Uang Masuk</option>
-                                        <option value="uang_keluar">Uang Keluar</option>
+                                        {transactionCategories.map((category) => {
+                                            const value =
+                                                category === "Transaksi Penjualan"
+                                                    ? "transaksi_penjualan"
+                                                    : category;
+
+                                            return (
+                                                <option key={value} value={value}>
+                                                    {category}
+                                                </option>
+                                            );
+                                        })}
                                     </select>
                                 </div>
                                 {/* <InputSelect
