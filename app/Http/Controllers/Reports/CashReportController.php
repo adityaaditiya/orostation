@@ -16,28 +16,13 @@ use Inertia\Inertia;
 
 class CashReportController extends Controller
 {
-    /**
-     * Display the cash flow report.
-     */
     public function index(Request $request)
     {
-        $defaultDate = Carbon::today()->toDateString();
-        $filters = [
-            'start_date' => $request->input('start_date') ?: $defaultDate,
-            'end_date' => $request->input('end_date') ?: $defaultDate,
-            'invoice' => $request->input('invoice'),
-            'cashier_id' => $request->input('cashier_id'),
-            'customer_id' => $request->input('customer_id'),
-            'shift' => $request->input('shift'),
-            'transaction_category' => $request->input('transaction_category'),
-        ];
-
-        $includeTransactions = empty($filters['transaction_category']) || $filters['transaction_category'] === 'transaksi_penjualan';
-        $includeCashEntries = empty($filters['transaction_category']) || in_array($filters['transaction_category'], ['uang_masuk', 'uang_keluar'], true);
+        $filters = $this->resolveFilters($request);
+        [$includeTransactions, $includeCashEntries] = $this->resolveDataInclusions($filters['transaction_category']);
 
         $transactionQuery = $this->applyFilters(
-            Transaction::query()->notCanceled()
-                ->with(['cashier:id,name', 'customer:id,name']),
+            Transaction::query()->notCanceled()->with(['cashier:id,name', 'customer:id,name']),
             $filters
         )->orderByDesc('created_at');
 
@@ -60,19 +45,15 @@ class CashReportController extends Controller
         $cashEntryList = $includeCashEntries
             ? (clone $cashEntryQuery)->get()->map(fn ($entry) => [
                 'id' => 'cash-entry-' . $entry->id,
-                'category' => $entry->category === 'in' ? 'Uang Masuk' : 'Uang Keluar',
+                'category' => $entry->category,
                 'description' => $entry->description,
-                'cash_in' => $entry->category === 'in' ? (int) $entry->amount : 0,
-                'cash_out' => $entry->category === 'out' ? (int) $entry->amount : 0,
+                'cash_in' => $entry->type === CashEntry::TYPE_IN ? (int) $entry->amount : 0,
+                'cash_out' => $entry->type === CashEntry::TYPE_OUT ? (int) $entry->amount : 0,
                 'created_at' => $entry->created_at,
             ])
             : collect();
 
-        $mergedRows = $transactionsList
-            ->concat($cashEntryList)
-            ->sortByDesc('created_at')
-            ->values();
-
+        $mergedRows = $transactionsList->concat($cashEntryList)->sortByDesc('created_at')->values();
         $transactions = $this->paginateRows($mergedRows, $request);
 
         $transactionTotals = $includeTransactions
@@ -83,54 +64,55 @@ class CashReportController extends Controller
 
         $cashEntryTotals = $includeCashEntries
             ? $this->applyCashEntryFilters(CashEntry::query(), $filters)
-                ->selectRaw("
-                    COALESCE(SUM(CASE WHEN category = 'in' THEN amount ELSE 0 END), 0) as cash_in_total,
-                    COALESCE(SUM(CASE WHEN category = 'out' THEN amount ELSE 0 END), 0) as cash_out_total
-                ")
+                ->selectRaw("COALESCE(SUM(CASE WHEN type = 'in' THEN amount ELSE 0 END), 0) as cash_in_total, COALESCE(SUM(CASE WHEN type = 'out' THEN amount ELSE 0 END), 0) as cash_out_total")
                 ->first()
             : (object) ['cash_in_total' => 0, 'cash_out_total' => 0];
 
-        $cashInTotal = (int) ($transactionTotals->cash_in_total ?? 0)
-            + (int) ($cashEntryTotals->cash_in_total ?? 0);
+        $cashInTotal = (int) ($transactionTotals->cash_in_total ?? 0) + (int) ($cashEntryTotals->cash_in_total ?? 0);
         $cashOutTotal = (int) ($cashEntryTotals->cash_out_total ?? 0);
-
-        $summary = [
-            'cash_in_total' => $cashInTotal,
-            'cash_out_total' => $cashOutTotal,
-            'net_total' => $cashInTotal - $cashOutTotal,
-        ];
 
         return Inertia::render('Dashboard/Reports/Cash', [
             'transactions' => $transactions,
-            'summary' => $summary,
+            'summary' => [
+                'cash_in_total' => $cashInTotal,
+                'cash_out_total' => $cashOutTotal,
+                'net_total' => $cashInTotal - $cashOutTotal,
+            ],
             'filters' => $filters,
             'cashiers' => User::select('id', 'name')->orderBy('name')->get(),
             'customers' => Customer::select('id', 'name')->orderBy('name')->get(),
+            'transactionCategories' => $this->transactionCategories(),
         ]);
     }
 
-    /**
-     * Export cash flow report to Excel.
-     */
     public function export(Request $request)
     {
-        $defaultDate = Carbon::today()->toDateString();
-        $filters = [
-            'start_date' => $request->input('start_date') ?: $defaultDate,
-            'end_date' => $request->input('end_date') ?: $defaultDate,
-            'invoice' => $request->input('invoice'),
-            'cashier_id' => $request->input('cashier_id'),
-            'customer_id' => $request->input('customer_id'),
-            'shift' => $request->input('shift'),
-            'transaction_category' => $request->input('transaction_category'),
-        ];
+        $filters = $this->resolveFilters($request);
+        $rows = $this->buildExportRows($filters, true);
 
-        $includeTransactions = empty($filters['transaction_category']) || $filters['transaction_category'] === 'transaksi_penjualan';
-        $includeCashEntries = empty($filters['transaction_category']) || in_array($filters['transaction_category'], ['uang_masuk', 'uang_keluar'], true);
+        return $this->downloadExcel('laporan-keuangan-cash.xls', ['Kategori', 'Deskripsi', 'Uang Masuk', 'Uang Keluar'], $rows);
+    }
+
+    public function exportPdf(Request $request)
+    {
+        $filters = $this->resolveFilters($request);
+        $rows = $this->buildExportRows($filters, false);
+
+        return $this->downloadPdf(
+            'laporan-keuangan-cash.pdf',
+            'Laporan Keuangan Cash',
+            $this->buildPeriodLabel($filters),
+            ['Kategori', 'Deskripsi', 'Uang Masuk', 'Uang Keluar'],
+            $rows
+        );
+    }
+
+    protected function buildExportRows(array $filters, bool $sortByDate): array
+    {
+        [$includeTransactions, $includeCashEntries] = $this->resolveDataInclusions($filters['transaction_category']);
 
         $transactionQuery = $this->applyFilters(
-            Transaction::query()->notCanceled()
-                ->with(['cashier:id,name', 'customer:id,name']),
+            Transaction::query()->notCanceled()->with(['cashier:id,name', 'customer:id,name']),
             $filters
         )->orderByDesc('created_at');
 
@@ -151,21 +133,21 @@ class CashReportController extends Controller
 
         $cashEntryList = $includeCashEntries
             ? (clone $cashEntryQuery)->get()->map(fn ($entry) => [
-                'category' => $entry->category === 'in' ? 'Uang Masuk' : 'Uang Keluar',
+                'category' => $entry->category,
                 'description' => $entry->description,
-                'cash_in' => $entry->category === 'in' ? (int) $entry->amount : 0,
-                'cash_out' => $entry->category === 'out' ? (int) $entry->amount : 0,
+                'cash_in' => $entry->type === CashEntry::TYPE_IN ? (int) $entry->amount : 0,
+                'cash_out' => $entry->type === CashEntry::TYPE_OUT ? (int) $entry->amount : 0,
                 'created_at' => $entry->created_at,
             ])
             : collect();
 
-        $mergedRows = $transactionsList
-            ->concat($cashEntryList)
-            ->sortByDesc('created_at')
-            ->values();
+        $mergedRows = $transactionsList->concat($cashEntryList);
 
-        $headers = ['Kategori', 'Deskripsi', 'Uang Masuk', 'Uang Keluar'];
-        $rows = $mergedRows->map(function ($row) {
+        if ($sortByDate) {
+            $mergedRows = $mergedRows->sortByDesc('created_at')->values();
+        }
+
+        return $mergedRows->map(function ($row) {
             return [
                 $row['category'],
                 $row['description'],
@@ -173,78 +155,8 @@ class CashReportController extends Controller
                 $this->formatCurrency((int) ($row['cash_out'] ?? 0)),
             ];
         })->all();
-
-        return $this->downloadExcel('laporan-keuangan-cash.xls', $headers, $rows);
     }
 
-    /**
-     * Export cash flow report to PDF.
-     */
-    public function exportPdf(Request $request)
-    {
-        $defaultDate = Carbon::today()->toDateString();
-        $filters = [
-            'start_date' => $request->input('start_date') ?: $defaultDate,
-            'end_date' => $request->input('end_date') ?: $defaultDate,
-            'invoice' => $request->input('invoice'),
-            'cashier_id' => $request->input('cashier_id'),
-            'customer_id' => $request->input('customer_id'),
-            'shift' => $request->input('shift'),
-            'transaction_category' => $request->input('transaction_category'),
-        ];
-
-        $includeTransactions = empty($filters['transaction_category']) || $filters['transaction_category'] === 'transaksi_penjualan';
-        $includeCashEntries = empty($filters['transaction_category']) || in_array($filters['transaction_category'], ['uang_masuk', 'uang_keluar'], true);
-
-        $transactionQuery = $this->applyFilters(
-            Transaction::query()->notCanceled()
-                ->with(['cashier:id,name', 'customer:id,name']),
-            $filters
-        )->orderByDesc('created_at');
-
-        $cashEntryQuery = $this->applyCashEntryFilters(
-            CashEntry::query()->with(['cashier:id,name']),
-            $filters
-        )->orderByDesc('created_at');
-
-        $transactionsList = $includeTransactions
-            ? (clone $transactionQuery)->get()->map(fn ($trx) => [
-                'category' => 'Transaksi Penjualan',
-                'description' => $trx->invoice,
-                'cash_in' => (int) $trx->grand_total,
-                'cash_out' => 0,
-            ])
-            : collect();
-
-        $cashEntryList = $includeCashEntries
-            ? (clone $cashEntryQuery)->get()->map(fn ($entry) => [
-                'category' => $entry->category === 'in' ? 'Uang Masuk' : 'Uang Keluar',
-                'description' => $entry->description,
-                'cash_in' => $entry->category === 'in' ? (int) $entry->amount : 0,
-                'cash_out' => $entry->category === 'out' ? (int) $entry->amount : 0,
-            ])
-            : collect();
-
-        $mergedRows = $transactionsList
-            ->concat($cashEntryList)
-            ->values();
-
-        $headers = ['Kategori', 'Deskripsi', 'Uang Masuk', 'Uang Keluar'];
-        $rows = $mergedRows->map(function ($row) {
-            return [
-                $row['category'],
-                $row['description'],
-                $this->formatCurrency((int) ($row['cash_in'] ?? 0)),
-                $this->formatCurrency((int) ($row['cash_out'] ?? 0)),
-            ];
-        })->all();
-
-        return $this->downloadPdf('laporan-keuangan-cash.pdf', 'Laporan Keuangan Cash', $this->buildPeriodLabel($filters), $headers, $rows);
-    }
-
-    /**
-     * Apply table filters.
-     */
     protected function applyFilters($query, array $filters)
     {
         $query = $query
@@ -254,23 +166,20 @@ class CashReportController extends Controller
             ->when($filters['start_date'] ?? null, fn ($q, $start) => $q->whereDate('created_at', '>=', $start))
             ->when($filters['end_date'] ?? null, fn ($q, $end) => $q->whereDate('created_at', '<=', $end));
 
-
         if (($filters['shift'] ?? null) === 'pagi') {
-            $query->whereTime('created_at', '>=', '06:00:00')
-                ->whereTime('created_at', '<', '15:00:00');
+            $query->whereTime('created_at', '>=', '06:00:00')->whereTime('created_at', '<', '15:00:00');
         }
 
         if (($filters['shift'] ?? null) === 'malam') {
-            $query->whereTime('created_at', '>=', '15:00:00')
-                ->whereTime('created_at', '<=', '23:59:59');
+            $query->where(function ($shiftQuery) {
+                $shiftQuery->whereTime('created_at', '>=', '15:00:00')
+                    ->orWhereTime('created_at', '<=', '00:00:00');
+            });
         }
 
         return $query;
     }
 
-    /**
-     * Apply table filters for cash entries.
-     */
     protected function applyCashEntryFilters($query, array $filters)
     {
         $query = $query
@@ -278,41 +187,59 @@ class CashReportController extends Controller
             ->when($filters['start_date'] ?? null, fn ($q, $start) => $q->whereDate('created_at', '>=', $start))
             ->when($filters['end_date'] ?? null, fn ($q, $end) => $q->whereDate('created_at', '<=', $end));
 
-        if (($filters['transaction_category'] ?? null) === 'uang_masuk') {
-            $query->where('category', 'in');
-        }
-
-        if (($filters['transaction_category'] ?? null) === 'uang_keluar') {
-            $query->where('category', 'out');
-        }
-
         if (($filters['shift'] ?? null) === 'pagi') {
-            $query->whereTime('created_at', '>=', '06:00:00')
-                ->whereTime('created_at', '<', '15:00:00');
+            $query->whereTime('created_at', '>=', '06:00:00')->whereTime('created_at', '<', '15:00:00');
         }
 
         if (($filters['shift'] ?? null) === 'malam') {
-            $query->whereTime('created_at', '>=', '15:00:00')
-                ->whereTime('created_at', '<=', '23:59:59');
+            $query->where(function ($shiftQuery) {
+                $shiftQuery->whereTime('created_at', '>=', '15:00:00')
+                    ->orWhereTime('created_at', '<=', '00:00:00');
+            });
         }
 
-        if (! empty($filters['invoice']) || ! empty($filters['customer_id'])) {
-            $query->whereRaw('1 = 0');
+        if (! empty($filters['transaction_category']) && $filters['transaction_category'] !== 'transaksi_penjualan') {
+            $query->where('category', $filters['transaction_category']);
         }
 
         return $query;
     }
 
-    /**
-     * Paginate merged report rows.
-     */
-    protected function paginateRows(Collection $rows, Request $request, int $perPage = 10)
+    protected function resolveFilters(Request $request): array
     {
-        $currentPage = LengthAwarePaginator::resolveCurrentPage();
-        $pageItems = $rows->forPage($currentPage, $perPage)->values();
+        $defaultDate = Carbon::today()->toDateString();
 
-        return new LengthAwarePaginator($pageItems, $rows->count(), $perPage, $currentPage, [
-            'path' => LengthAwarePaginator::resolveCurrentPath(),
+        return [
+            'start_date' => $request->input('start_date') ?: $defaultDate,
+            'end_date' => $request->input('end_date') ?: $defaultDate,
+            'invoice' => $request->input('invoice'),
+            'cashier_id' => $request->input('cashier_id'),
+            'customer_id' => $request->input('customer_id'),
+            'shift' => $request->input('shift'),
+            'transaction_category' => $request->input('transaction_category'),
+        ];
+    }
+
+    protected function resolveDataInclusions(?string $transactionCategory): array
+    {
+        $includeTransactions = empty($transactionCategory) || $transactionCategory === 'transaksi_penjualan';
+        $includeCashEntries = empty($transactionCategory) || in_array($transactionCategory, CashEntry::CATEGORY_OPTIONS, true);
+
+        return [$includeTransactions, $includeCashEntries];
+    }
+
+    protected function transactionCategories(): array
+    {
+        return array_merge(['Transaksi Penjualan'], CashEntry::CATEGORY_OPTIONS);
+    }
+
+    protected function paginateRows(Collection $rows, Request $request, int $perPage = 10): LengthAwarePaginator
+    {
+        $page = LengthAwarePaginator::resolveCurrentPage();
+        $items = $rows->slice(($page - 1) * $perPage, $perPage)->values();
+
+        return new LengthAwarePaginator($items, $rows->count(), $perPage, $page, [
+            'path' => $request->url(),
             'query' => $request->query(),
         ]);
     }
@@ -324,40 +251,40 @@ class CashReportController extends Controller
 
     protected function buildPeriodLabel(array $filters): string
     {
-        $startDate = $filters['start_date'] ?? '-';
-        $endDate = $filters['end_date'] ?? '-';
+        $start = $filters['start_date'] ?? null;
+        $end = $filters['end_date'] ?? null;
 
-        return 'PERIODE : ' . $startDate . ' s/d ' . $endDate;
+        if ($start && $end) {
+            return Carbon::parse($start)->format('d/m/Y') . ' - ' . Carbon::parse($end)->format('d/m/Y');
+        }
+
+        if ($start) {
+            return 'Mulai ' . Carbon::parse($start)->format('d/m/Y');
+        }
+
+        if ($end) {
+            return 'Sampai ' . Carbon::parse($end)->format('d/m/Y');
+        }
+
+        return 'Semua Periode';
     }
 
     protected function downloadExcel(string $filename, array $headers, array $rows)
     {
-        return response()->streamDownload(function () use ($headers, $rows) {
-            echo '<table border="1"><thead><tr>';
-            foreach ($headers as $header) {
-                echo '<th>' . e($header) . '</th>';
-            }
-            echo '</tr></thead><tbody>';
-            foreach ($rows as $row) {
-                echo '<tr>';
-                foreach ($row as $cell) {
-                    echo '<td>' . e((string) $cell) . '</td>';
-                }
-                echo '</tr>';
-            }
-            echo '</tbody></table>';
-        }, $filename, [
+        $content = implode("\t", $headers) . "\n";
+
+        foreach ($rows as $row) {
+            $content .= implode("\t", array_map(fn ($value) => str_replace(["\t", "\n", "\r"], ' ', (string) $value), $row)) . "\n";
+        }
+
+        return response($content, 200, [
             'Content-Type' => 'application/vnd.ms-excel; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
         ]);
     }
 
     protected function downloadPdf(string $filename, string $title, string $period, array $headers, array $rows)
     {
-        $pdfBinary = SimplePdfExport::make($title, $period, $headers, $rows);
-
-        return response($pdfBinary, 200, [
-            'Content-Type' => 'application/pdf',
-            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
-        ]);
+        return SimplePdfExport::download($filename, $title, $period, $headers, $rows);
     }
 }
